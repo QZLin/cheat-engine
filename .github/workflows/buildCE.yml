@@ -16,9 +16,9 @@ jobs:
         shell: bash
         id: get-info
         run: |
-          echo "::set-output name=lazarus::$(node ./.github/workflows/scripts/getLazarusVersion.js)"
-          echo "::set-output name=fpc::$(node ./.github/workflows/scripts/getFpcVersion.js)"
-          echo "::set-output name=dependencies::$(node ./.github/workflows/scripts/getPackages.js)"
+          echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
+          echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
+          echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
       # todo: setup cache
       - name: Install Lazarus
         uses: gcarreno/setup-lazarus@v3.2

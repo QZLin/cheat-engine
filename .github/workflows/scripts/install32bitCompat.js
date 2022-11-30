@@ -9,7 +9,7 @@ get(
     const download = createWriteStream(join(process.env.GITHUB_WORKSPACE, "32bit.exe"));
     res.pipe(download);
     download.on("finish", () => {
-      exec(`cd "${process.env.GITHUB_WORKSPACE}" && 32bit.exe /VERYSILENT /DIR=${join(process.env.RUNNER_TEMP, "lazarus")}`);
+      exec(`cd "${process.env.GITHUB_WORKSPACE}" && 32bit.exe /VERYSILENT /DIR=${join(process.env.RUNNER_TEMP, "installers/lazarus")}`);
     });
   }
 );
