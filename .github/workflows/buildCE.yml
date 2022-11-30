@@ -11,24 +11,27 @@ jobs:
     runs-on: windows-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
-      - name: Setup job variables
-        uses: allenevans/set-env@v2.0.1
-        with:
-          LAZARUS_VERSION: 2.0.10
-          FPC_VERSION: 3.2.0
       - uses: actions/checkout@v3
       - name: Get Lazarus dependencies
         shell: bash
-        id: get-dependencies
-        run: echo "::set-output name=dependencies::$(node ./.github/workflows/scripts/getPackages.js)"
+        id: get-info
+        run: |
+          echo "::set-output name=lazarus::$(node ./.github/workflows/scripts/getLazarusVersion.js)"
+          echo "::set-output name=fpc::$(node ./.github/workflows/scripts/getFpcVersion.js)"
+          echo "::set-output name=dependencies::$(node ./.github/workflows/scripts/getPackages.js)"
+      # todo: setup cache
       - name: Install Lazarus
-        uses: gcarreno/setup-lazarus@v3.0.16
+        uses: gcarreno/setup-lazarus@v3.2
         with:
-          lazarus-version: ${{ env.LAZARUS_VERSION }}
-          include-packages: ${{ steps.get-dependencies.outputs.dependencies }}
+          lazarus-version: ${{ steps.get-info.outputs.lazarus }}
+          include-packages: ${{ steps.get-info.outputs.dependencies }}
+          with-cache: false
       - name: Install 32bit compat
         shell: bash
         run: node ./.github/workflows/scripts/install32bitCompat.js
+        env:
+          LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
+          FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
       - name: Build 32-Bit
         if: always()
         shell: cmd
