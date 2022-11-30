@@ -12,26 +12,35 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v3
-      - name: Get Lazarus dependencies
+      - name: Get Lazarus info
         shell: bash
         id: get-info
         run: |
           echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
           echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
           echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
-      # todo: setup cache
-      - name: Install Lazarus
-        uses: gcarreno/setup-lazarus@v3.2
-        with:
-          lazarus-version: ${{ steps.get-info.outputs.lazarus }}
-          include-packages: ${{ steps.get-info.outputs.dependencies }}
-          with-cache: false
-      - name: Install 32bit compat
+      - name: Make working dir
+        shell: cmd
+        run: mkdir ${{ env.GITHUB_WORKSPACE }}\work
+      - name: Download Lazarus
+        shell: cmd
+        run: |
+          curl -L https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-win64.exe -O ${{ env.GITHUB_WORKSPACE }}\work\lazarus64bit.exe
+          curl -L https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-cross-i386-win32-win64.exe -O ${{ env.GITHUB_WORKSPACE }}\work\lazarus32bit.exe
+      - name: Setup Lazarus
+        shell: cmd
+        run: |
+          ${{ env.GITHUB_WORKSPACE }}\work\lazarus64bit.exe /VERYSILENT /DIR=${{ env.GITHUB_WORKSPACE }}\work\lazarus
+          ${{ env.GITHUB_WORKSPACE }}\work\lazarus32bit.exe /VERYSILENT /DIR=${{ env.GITHUB_WORKSPACE }}\work\lazarus
+      - name: Add Lazarus to path
         shell: bash
-        run: node ./.github/workflows/scripts/install32bitCompat.js
-        env:
-          LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
-          FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
+        run: |
+          echo "${{env.GITHUB_WORKSPACE}}\work\lazarus" >> $GITHUB_PATH
+          echo "${{env.GITHUB_WORKSPACE}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $GITHUB_PATH
+      - name: Apply fixes
+        shell: bash
+        run: py ./.github/workflows/scripts/fixes.py
+      # todo: setup cache
       - name: Build 32-Bit
         if: always()
         shell: cmd
