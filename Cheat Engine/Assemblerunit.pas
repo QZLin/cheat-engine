@@ -18,7 +18,7 @@ uses
   dialogs,LCLIntf,sysutils{$ifdef windows},imagehlp{$endif}, ProcessHandlerUnit,vextypedef;
 {$endif}
 
-const opcodecount=1915;  //I wish there was a easier way than to handcount
+const opcodecount=1917+14;  //I wish there was a easier way than to handcount
   //1112
 
 
@@ -29,7 +29,8 @@ type
 
 
 
-type TTokenType=(
+type
+  TCEAATokenType=(
   ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
   ttRegisterMM, ttRegisterXMM, ttRegisterYMM, ttRegisterST, ttRegisterSreg,
   ttRegisterCR, ttRegisterDR, ttMemoryLocation, ttMemoryLocation8,
@@ -102,6 +103,10 @@ type tparam=(par_noparam,
              par_xmm_m64,
              par_xmm_m128,
              par_ymm_m256,
+             par_vm32x, //VSIB
+             par_vm32y, //VSIB
+             par_vm64x, //VSIB
+             par_vm64y, //VSIB
 
             //values
              par_imm8,
@@ -135,6 +140,8 @@ type topcode=record
   vexOpcodeExtension: TVEXOpcodeExtention; //e.g oe_F3;
   vexLeadingOpcode: TVEXLeadingopcode; //lo_0f),
   vexExtraParam: integer;
+  vexSIB: boolean;
+  continueSearchingWhenOffsetTooBig: boolean;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 
   //paramencoding: TParamEncoding;
@@ -846,6 +853,8 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'MONITOR';bytes:3;bt1:$0f;bt2:$01;bt3:$c8),
 
+  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$8b; continueSearchingWhenOffsetTooBig: true), //8b prefered over 89 in case of r32,r32, and over a1
+
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_al;paramtype2:par_moffs8;bytes:1;bt1:$a0),
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_ax;paramtype2:par_moffs16;bytes:2;bt1:$66;bt2:$a1),
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_eax;paramtype2:par_moffs32;bytes:1;bt1:$a1),
@@ -855,7 +864,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$88),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$89),
-  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$8b), //8b prefered over 89 in case of r32,r32
+
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$89),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r8;paramtype2:par_rm8;bytes:1;bt1:$8a),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$8b),
@@ -1986,22 +1995,22 @@ const opcodes: array [1..opcodecount] of topcode =(
 
 
   //todo: add modrm support for vm*
-  //(mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
-  //(mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3),
+  (mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERDPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERQPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$93;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERDPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$92;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VGATHERQPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$93;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERDD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERQD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm64y;paramtype3:par_ymm; bytes:1;bt1:$91;W1:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm32x;paramtype3:par_xmm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64x;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:0; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERDQ';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_vm32x;paramtype3:par_ymm; bytes:1;bt1:$90;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
+  (mnemonic:'VPGATHERQQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_vm64y;paramtype3:par_xmm; bytes:1;bt1:$91;W0:true;hasvex:true; vexL:1; vexOpcodeExtension: oe_66;vexLeadingOpcode: lo_0F_38; vexExtraParam:3; vexSIB:true),
 
 
   (mnemonic:'VHADDPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$7c;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
@@ -2705,10 +2714,10 @@ function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; as
 function GetOpcodesIndex(opcode: string): integer;
 
 //function tokenize(opcode:string; var tokens: ttokens): boolean;
-function gettokentype(var token:string;token2: string): TTokenType;
+function gettokentype(var token:string;token2: string): TCEAATokenType;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 function getreg(reg: string): integer; overload;
-function TokenToRegisterbit(token:string): TTokenType;
+function TokenToRegisterbit(token:string): TCEAATokenType;
 
 
 type TSingleLineAssembler=class
@@ -2721,6 +2730,7 @@ type TSingleLineAssembler=class
     relativeAddressLocation: integer; //index into the bytes array containing the start of th relative 4 byte address
     actualdisplacement: qword;
     needsAddressSwitchPrefix: boolean;
+    usesVexSIB: boolean;
     faddress: qword;
 
     function getRex_W: boolean;
@@ -2754,7 +2764,10 @@ type TSingleLineAssembler=class
 
 end;
 
-var SingleLineAssembler: TSingleLineAssembler;
+
+threadvar
+  sla: TSingleLineAssembler;
+//var SingleLineAssembler: TSingleLineAssembler;
 
 
 var parameter1,parameter2,parameter3: integer;
@@ -3048,23 +3061,69 @@ end;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 begin
   result:=-1;
+  if processhandler.SystemArchitecture=archX86 then
+  begin
+    if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then exit(0);
+    if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then exit(1);
+    if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then exit(2);
+    if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then exit(3);
+    if (reg='SPL') or (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then exit(4);
+    if (reg='BPL') or (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then exit(5);
+    if (reg='SIL') or (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then exit(6);
+    if (reg='DIL') or (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then exit(7);
+    if (reg='R8') or (reg='XMM8') or (reg='YMM8') then exit(8);
+    if (reg='R9') or (reg='XMM9') or (reg='YMM9') then exit(9);
+    if (reg='R10') or (reg='XMM10') or (reg='YMM10') then exit(10);
+    if (reg='R11') or (reg='XMM11') or (reg='YMM11') then exit(11);
+    if (reg='R12') or (reg='XMM12') or (reg='YMM12') then exit(12);
+    if (reg='R13') or (reg='XMM13') or (reg='YMM13') then exit(13);
+    if (reg='R14') or (reg='XMM14') or (reg='YMM14') then exit(14);
+    if (reg='R15') or (reg='XMM15') or (reg='YMM15') then exit(15);
+  end
+  else
+  begin
+    if processhandler.is64Bit then
+    begin
 
-  if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then result:=0;
-  if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then result:=1;
-  if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then result:=2;
-  if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then result:=3;
-  if (reg='SPL') or (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then result:=4;
-  if (reg='BPL') or (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then result:=5;
-  if (reg='SIL') or (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then result:=6;
-  if (reg='DIL') or (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
-  if (reg='R8') then result:=8;
-  if (reg='R9') then result:=9;
-  if (reg='R10') then result:=10;
-  if (reg='R11') then result:=11;
-  if (reg='R12') then result:=12;
-  if (reg='R13') then result:=13;
-  if (reg='R14') then result:=14;
-  if (reg='R15') then result:=15;
+      if length(reg)>=2 then
+      begin
+        if (reg[1]='X') and (reg[2] in ['0'..'9']) then
+        begin
+          try
+            exit(reg.Substring(1).ToInteger);
+          except
+            if exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
+            exit(-1);
+          end;
+        end;
+
+        if reg='PC' then exit(32); //special number
+      end;
+
+    end
+    else
+    begin
+      if length(reg)>=2 then
+      begin
+        if (reg[1]='R') and (reg[2] in ['0'..'9']) then
+        begin
+          try
+            exit(reg.Substring(1).ToInteger);
+          except
+            if exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
+            exit(-1);
+          end;
+        end;
+
+        if reg='FP' then exit(11);
+        if reg='IP' then exit(12);
+        if reg='SP' then exit(13);
+        if reg='LR' then exit(14);
+        if reg='PC' then exit(15);
+      end;
+    end;
+  end;
+
 
   if (result=-1) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
 end;
@@ -3092,14 +3151,14 @@ begin
     if (reg='BPL') then exit(5);
     if (reg='SIL') then exit(6);
     if (reg='DIL') then exit(7);
-    if (reg='R8') or (reg='R8D') or (reg='R8W') or (reg='R8L') or (reg='MM8') or (reg='XMM8') or (reg='YMM8') or (reg='ST(8)') or (reg='JS') or (reg='CR8') or (reg='DR8') then exit(8);
-    if (reg='R9') or (reg='R9D') or (reg='R9W') or (reg='R9L') or (reg='MM9') or (reg='XMM9') or (reg='YMM9') or (reg='ST(9)') or (reg='KS') or (reg='CR9') or (reg='DR9') then exit(9);
-    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='MM10') or (reg='XMM10') or (reg='YMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then exit(10);
-    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='MM11') or (reg='XMM11') or (reg='YMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then exit(11);
-    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='MM12') or (reg='XMM12') or (reg='YMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then exit(12);
-    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='MM13') or (reg='XMM13') or (reg='YMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then exit(13);
-    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='MM14') or (reg='XMM14') or (reg='YMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then exit(14);
-    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
+    if (reg='R8') or (reg='R8D') or (reg='R8W')    or (reg='R8L')  or (reg='R8B')  or (reg='MM8')  or (reg='XMM8')  or (reg='YMM8')  or (reg='ST(8)')  or (reg='JS') or (reg='CR8')  or (reg='DR8') then exit(8);
+    if (reg='R9') or (reg='R9D') or (reg='R9W')    or (reg='R9L')  or (reg='R9B')  or (reg='MM9')  or (reg='XMM9')  or (reg='YMM9')  or (reg='ST(9)')  or (reg='KS') or (reg='CR9')  or (reg='DR9') then exit(9);
+    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='R10B') or (reg='MM10') or (reg='XMM10') or (reg='YMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then exit(10);
+    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='R11B') or (reg='MM11') or (reg='XMM11') or (reg='YMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then exit(11);
+    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='R12B') or (reg='MM12') or (reg='XMM12') or (reg='YMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then exit(12);
+    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='R13B') or (reg='MM13') or (reg='XMM13') or (reg='YMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then exit(13);
+    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='R14B') or (reg='MM14') or (reg='XMM14') or (reg='YMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then exit(14);
+    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='R15B') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
   end;
 
   if (result=1000) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
@@ -3112,7 +3171,7 @@ end;
 
 
 
-function TokenToRegisterbit(token:string): TTokenType;
+function TokenToRegisterbit(token:string): TCEAATokenType;
 //todo: Optimize with a case statement A->AL/AH/AX , B->BL/ .....
 begin
   result:=ttRegister32bit;
@@ -3277,14 +3336,14 @@ begin
       if token='DIL' then result:=ttRegister8BitWithPrefix else
 
 
-      if token='R8L' then result:=ttRegister8Bit else
-      if token='R9L' then result:=ttRegister8Bit else
-      if token='R10L' then result:=ttRegister8Bit else
-      if token='R11L' then result:=ttRegister8Bit else
-      if token='R12L' then result:=ttRegister8Bit else
-      if token='R13L' then result:=ttRegister8Bit else
-      if token='R14L' then result:=ttRegister8Bit else
-      if token='R15L' then result:=ttRegister8Bit else
+      if (token='R8L')  or (token='R8B') then result:=ttRegister8Bit else
+      if (token='R9L')  or (token='R9B') then result:=ttRegister8Bit else
+      if (token='R10L') or (token='R10B') then result:=ttRegister8Bit else
+      if (token='R11L') or (token='R11B') then result:=ttRegister8Bit else
+      if (token='R12L') or (token='R12B') then result:=ttRegister8Bit else
+      if (token='R13L') or (token='R13B') then result:=ttRegister8Bit else
+      if (token='R14L') or (token='R14B') then result:=ttRegister8Bit else
+      if (token='R15L') or (token='R15B') then result:=ttRegister8Bit else
 
       if token='R8W' then result:=ttRegister16Bit else
       if token='R9W' then result:=ttRegister16Bit else
@@ -3325,7 +3384,7 @@ begin
   end;
 end;
 
-function gettokentype(var token:string;token2: string): TTokenType;
+function gettokentype(var token:string;token2: string): TCEAATokenType;
 var err: integer;
     temp:string;
     i64: int64;
@@ -3393,59 +3452,139 @@ begin
 
 end;
 
-function isrm8(parametertype:TTokenType): boolean;
+function isrm8(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttMemorylocation8) or (parametertype=ttRegister8bit);
 end;
 
-function isrm16(parametertype:TTokenType): boolean;
+function isrm16(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttmemorylocation16) or (parametertype=ttregister16bit);
 end;
 
-function isrm32(parametertype:TTokenType): boolean;
+function isrm32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttmemorylocation32) or (parametertype=ttregister32bit);
 end;
 
-function ismm_m32(parametertype:TTokenType): boolean;
+function ismm_m32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation32);
 end;
 
-function ismm_m64(parametertype:TTokenType): boolean;
+function ismm_m64(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m32(parametertype:TTokenType): boolean;
+function isxmm_m32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation32);
 end;
 
-function isxmm_m16(parametertype:TTokenType; params: string): boolean;
+function isxmm_m16(parametertype:TCEAATokenType; params: string): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation16) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
 end;
 
-function isxmm_m8(parametertype:TTokenType; params: string): boolean;
+function isxmm_m8(parametertype:TCEAATokenType; params: string): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation8) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
 end;
 
-function isxmm_m64(parametertype:TTokenType): boolean;
+function isxmm_m64(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m128(parametertype:TTokenType):boolean;
+function isxmm_m128(parametertype:TCEAATokenType):boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation128);
 end;
 
-function isymm_m256(parametertype:TTokenType):boolean;
+function isymm_m256(parametertype:TCEAATokenType):boolean;
 begin
   result:=(parametertype=ttRegisterYMM) or (parametertype=ttMemorylocation256);
+end;
+
+
+function isReservedToken(t: string): boolean;
+begin
+  result:=false;
+  if length(t)<3 then exit(false);
+
+  case t[1] of
+    'B' : //Byte, BYTE PTR
+    begin
+      if (t[2]='Y') and (t[3]='T') then //could be BYTE
+        exit((t='BYTE') or (t='BYTE PTR'));
+    end;
+
+    'D': //DQWORD, DWORD, DQWORD PTR, DWORD PTR
+    begin
+      case t[2] of
+        'Q' : //DQWORD or DQWORD PTR
+        begin
+          if t[3]='W' then
+            exit((t='DQWORD') or (t='DQWORD PTR'));
+        end;
+
+        'W' : //DWORD or DWORD PTR
+        begin
+          if t[3]='O' then
+            exit((t='DWORD') or (t='DWORD PTR'));
+        end;
+      end;
+    end;
+
+    'F' : //FAR
+    begin
+      if (t[2]='A') and (t[3]='R') then
+        exit(t='FAR');
+    end;
+
+    'L' : //LONG
+    begin
+      if (t[2]='O') and (t[3]='N') then
+        exit(t='LONG');
+    end;
+
+    'Q': //QWORD, QWORD PTR
+    begin
+      if (t[2]='W') and (t[3]='O') then //could be QWORD
+        exit((t='QWORD') or (t='QWORD PTR'));
+    end;
+
+    'S' : //SHORT
+    begin
+      if (t[2]='H') and (t[3]='O') then
+        exit(t='SHORT');
+    end;
+
+    'T': //TBYTE, TWORD, TBYTE PTR, TWORD PTR,
+    begin
+      case t[2] of
+        'B' : //TBYTE or TBYTE PTR
+        begin
+          if t[3]='Y' then
+            exit((t='TBYTE') or (t='TBYTE PTR'));
+        end;
+
+        'W' : //TWORD or TWORD PTR
+        begin
+          if t[3]='O' then
+            exit((t='TWORD') or (t='TWORD PTR'));
+        end;
+      end;
+
+    end;
+
+    'W' : //WORD, WORD PTR
+    begin
+      if (t[2]='O') and (t[3]='R') then //could be WORD
+        exit((t='WORD') or (t='WORD PTR'));
+    end;
+  end;
 end;
 
 function rewrite(var token:string): boolean;
@@ -3458,6 +3597,8 @@ var i,j,err,err2: integer;
     haserror: boolean;
     inQuote: boolean;
     quotechar: char;
+
+    split: array of string;
 begin
   if length(token)=0 then exit(false); //empty string
 
@@ -3548,20 +3689,24 @@ begin
     if (length(tokens[i])>=1) and (not (tokens[i][1] in ['[',']','+','-','*',' '])) then //3/16/2011: 11:15 (replaced or with and)
     begin
       val('$'+tokens[i],j,err);
-      if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
+      if (err<>0) and (getreg(tokens[i],false)=-1) and (isReservedToken(tokens[i])=false) then    //not a hexadecimal value and not a register
       begin
+        j:=pos('*', tokens[i]);
+        if j>0 then //getreg failed, but could be it's the 'other' one
+        begin
+          split:=tokens[i].Split('*');
+          if (length(split)=2) and
+             (
+               (getreg(trim(split[0]),false)<>-1) or
+               (getreg(trim(split[1]),false)<>-1)
+             ) then continue;
+        end;
+
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], true, haserror,nil),8);
         if not haserror then
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else
         begin
-          j:=pos('*', tokens[i]);
-          if j>0 then //getreg failed, but could be it's the 'other' one
-          begin
-            if (length(tokens[i])>j) and (copy(tokens[i],j+1,1)[1] in ['2','4','8']) then
-              continue; //reg*2 / *3, /*4
-          end;
-
           if (i<length(tokens)-1) then
           begin
             //perhaps it can be concatenated with the next one
@@ -3866,6 +4011,7 @@ procedure TSingleLineAssembler.createsibscaleindex(var sib:byte;reg:string);
 var
   i: integer;
   hasmultiply: boolean;
+  s: string;
 begin
   hasmultiply:=false;
 
@@ -3911,38 +4057,55 @@ begin
   end
   else
   begin
-    if pos('RAX',reg)>0 then setsibindex(sib,0) else
-    if pos('RCX',reg)>0 then setsibindex(sib,1) else
-    if pos('RDX',reg)>0 then setsibindex(sib,2) else
-    if pos('RBX',reg)>0 then setsibindex(sib,3) else
-    if ((reg='') or (pos('RSP',reg)>0)) then setsibindex(sib,4) else //if esp it is invalid, but if the user types it it'll compile
-    if pos('RBP',reg)>0 then setsibindex(sib,5) else
-    if pos('RSI',reg)>0 then setsibindex(sib,6) else
-    if pos('RDI',reg)>0 then setsibindex(sib,7) else
-    if pos('R8',reg)>0 then setsibindex(sib,8) else
-    if pos('R9',reg)>0 then setsibindex(sib,9) else
-    if pos('R10',reg)>0 then setsibindex(sib,10) else
-    if pos('R11',reg)>0 then setsibindex(sib,11) else
-    if pos('R12',reg)>0 then setsibindex(sib,12) else
-    if pos('R13',reg)>0 then setsibindex(sib,13) else
-    if pos('R14',reg)>0 then setsibindex(sib,14) else
-    if pos('R15',reg)>0 then setsibindex(sib,15) else
+    if usesVexSIB then
+    begin              //vgatherqps xmm7,[ymm1*2+00000000],xmm5
+      if ((reg='') or (pos('RSP',reg)>0)) then setsibindex(sib,4) else
+      begin
+        if reg.StartsWith('XMM') or reg.StartsWith('YMM') then
+        begin
+          s:=reg.Split('*')[0];
+
+          setsibindex(sib, s.Substring(3).ToInteger);
+          exit;
+        end
+      end;
+
+      raise EAssemblerException.create(rsWTFIsA+reg);
+    end
+    else
     begin
-      //in case addressswitch is needed
-      if pos('EAX',reg)>0 then setsibindex(sib,0) else
-      if pos('ECX',reg)>0 then setsibindex(sib,1) else
-      if pos('EDX',reg)>0 then setsibindex(sib,2) else
-      if pos('EBX',reg)>0 then setsibindex(sib,3) else
-      if pos('ESP',reg)>0 then setsibindex(sib,4) else
-      if pos('EBP',reg)>0 then setsibindex(sib,5) else
-      if pos('ESI',reg)>0 then setsibindex(sib,6) else
-      if pos('EDI',reg)>0 then setsibindex(sib,7) else
-        raise EAssemblerException.create(rsWTFIsA+reg);
+      if pos('RAX',reg)>0 then setsibindex(sib,0) else
+      if pos('RCX',reg)>0 then setsibindex(sib,1) else
+      if pos('RDX',reg)>0 then setsibindex(sib,2) else
+      if pos('RBX',reg)>0 then setsibindex(sib,3) else
+      if ((reg='') or (pos('RSP',reg)>0)) then setsibindex(sib,4) else //if esp it is invalid, but if the user types it it'll compile
+      if pos('RBP',reg)>0 then setsibindex(sib,5) else
+      if pos('RSI',reg)>0 then setsibindex(sib,6) else
+      if pos('RDI',reg)>0 then setsibindex(sib,7) else
+      if pos('R8',reg)>0 then setsibindex(sib,8) else
+      if pos('R9',reg)>0 then setsibindex(sib,9) else
+      if pos('R10',reg)>0 then setsibindex(sib,10) else
+      if pos('R11',reg)>0 then setsibindex(sib,11) else
+      if pos('R12',reg)>0 then setsibindex(sib,12) else
+      if pos('R13',reg)>0 then setsibindex(sib,13) else
+      if pos('R14',reg)>0 then setsibindex(sib,14) else
+      if pos('R15',reg)>0 then setsibindex(sib,15) else
+      begin
+        //in case addressswitch is needed
+        if pos('EAX',reg)>0 then setsibindex(sib,0) else
+        if pos('ECX',reg)>0 then setsibindex(sib,1) else
+        if pos('EDX',reg)>0 then setsibindex(sib,2) else
+        if pos('EBX',reg)>0 then setsibindex(sib,3) else
+        if pos('ESP',reg)>0 then setsibindex(sib,4) else
+        if pos('EBP',reg)>0 then setsibindex(sib,5) else
+        if pos('ESI',reg)>0 then setsibindex(sib,6) else
+        if pos('EDI',reg)>0 then setsibindex(sib,7) else
+          raise EAssemblerException.create(rsWTFIsA+reg);
 
-      //still here, so I guess so
-      needsAddressSwitchPrefix:=true;
+        //still here, so I guess so
+        needsAddressSwitchPrefix:=true;
+      end;
     end;
-
   end;
 end;
 
@@ -4108,7 +4271,6 @@ begin
   end;
 
   try
-
     if (reg[k]='ESP') or (reg[-k]='ESP') or (reg[k]='RSP') or (reg[-k]='RSP') then //esp takes precedence
     begin
       if reg[-k]='ESP' then k:=-k;
@@ -4121,6 +4283,7 @@ begin
       found:=true;
       exit;
     end;
+
 
     if (reg[k]='EAX') or (reg[-k]='EAX') or (reg[k]='RAX') or (reg[-k]='RAX') then
     begin
@@ -4404,22 +4567,22 @@ begin
   begin
     //register //modrm c0 to ff
     setmod(modrm[0],3);
-    if (param='RAX') or (param='EAX') or (param='AX') or (param='AL') or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
-    if (param='RCX') or (param='ECX') or (param='CX') or (param='CL') or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
-    if (param='RDX') or (param='EDX') or (param='DX') or (param='DL') or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
-    if (param='RBX') or (param='EBX') or (param='BX') or (param='BL') or (param='MM3') or (param='XMM3') or (param='YMM3') then setrm(modrm[0],3) else
-    if (param='SPL') or (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') or (param='YMM4') then setrm(modrm[0],4) else
-    if (param='BPL') or (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') or (param='YMM5') then setrm(modrm[0],5) else
-    if (param='SIL') or (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') or (param='YMM6') then setrm(modrm[0],6) else
-    if (param='DIL') or (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') or (param='YMM7') then setrm(modrm[0],7) else
-    if (param='R8') or (param='R8D') or (param='R8W') or (param='R8L') or (param='MM8') or (param='XMM8') or (param='YMM8') then setrm(modrm[0],8) else
-    if (param='R9') or (param='R9D') or (param='R9W') or (param='R9L') or (param='MM9') or (param='XMM9') or (param='YMM9') then setrm(modrm[0],9) else
-    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='MM10') or (param='XMM10') or (param='YMM10') then setrm(modrm[0],10) else
-    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='MM11') or (param='XMM11') or (param='YMM11') then setrm(modrm[0],11) else
-    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='MM12') or (param='XMM12') or (param='YMM12') then setrm(modrm[0],12) else
-    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
-    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
-    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
+    if (param='RAX') or (param='EAX')  or (param='AX')   or (param='AL')   or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
+    if (param='RCX') or (param='ECX')  or (param='CX')   or (param='CL')   or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
+    if (param='RDX') or (param='EDX')  or (param='DX')   or (param='DL')   or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
+    if (param='RBX') or (param='EBX')  or (param='BX')   or (param='BL')   or (param='MM3') or (param='XMM3') or (param='YMM3') then setrm(modrm[0],3) else
+    if (param='SPL') or (param='RSP')  or (param='ESP')  or (param='SP')   or (param='AH') or (param='MM4') or (param='XMM4') or (param='YMM4') then setrm(modrm[0],4) else
+    if (param='BPL') or (param='RBP')  or (param='EBP')  or (param='BP')   or (param='CH') or (param='MM5') or (param='XMM5') or (param='YMM5') then setrm(modrm[0],5) else
+    if (param='SIL') or (param='RSI')  or (param='ESI')  or (param='SI')   or (param='DH') or (param='MM6') or (param='XMM6') or (param='YMM6') then setrm(modrm[0],6) else
+    if (param='DIL') or (param='RDI')  or (param='EDI')  or (param='DI')   or (param='BH') or (param='MM7') or (param='XMM7') or (param='YMM7') then setrm(modrm[0],7) else
+    if (param='R8')  or (param='R8D')  or (param='R8W')  or (param='R8L')  or (param='R8B') or (param='MM8') or (param='XMM8') or (param='YMM8') then setrm(modrm[0],8) else
+    if (param='R9')  or (param='R9D')  or (param='R9W')  or (param='R9L')  or (param='R9B') or (param='MM9') or (param='XMM9') or (param='YMM9') then setrm(modrm[0],9) else
+    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='R10B')or (param='MM10') or (param='XMM10') or (param='YMM10') then setrm(modrm[0],10) else
+    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='R11B')or (param='MM11') or (param='XMM11') or (param='YMM11') then setrm(modrm[0],11) else
+    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='R12B')or (param='MM12') or (param='XMM12') or (param='YMM12') then setrm(modrm[0],12) else
+    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='R13B')or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
+    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='R14B')or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
+    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='R15B')or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
     raise EAssemblerException.create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
@@ -4546,7 +4709,8 @@ end;
 
 function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 begin
-  result:=SingleLineAssembler.assemble(opcode, address, bytes, assemblerPreference, skiprangecheck);
+  if sla=nil then sla:=TSingleLineAssembler.Create;
+  result:=sla.assemble(opcode, address, bytes, assemblerPreference, skiprangecheck);
 end;
 
 function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
@@ -4554,8 +4718,8 @@ var tokens: ttokens;
     i,j,k,l: integer;
     v,v2, newv: qword;
     mnemonic,nroftokens: integer;
-    oldParamtype1, oldParamtype2: TTokenType;
-    paramtype1,paramtype2,paramtype3,paramtype4: TTokenType;
+    oldParamtype1, oldParamtype2: TCEAATokenType;
+    paramtype1,paramtype2,paramtype3,paramtype4: TCEAATokenType;
     parameter1,parameter2,parameter3,parameter4: string;
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
@@ -4564,24 +4728,56 @@ var tokens: ttokens;
 
     tempstring: string;
     tempwstring: widestring;
-    overrideShort, overrideLong, overrideFar: boolean;
+    overrideShort: boolean=false;
+    overrideLong: boolean=false;
+    overrideFar: boolean=false;
 
-    is64bit: boolean;
+    is64bit: boolean=false;
 
 
-    b: byte;
-    br: PTRUINT;
-    canDoAddressSwitch: boolean;
+    b: byte=0;
+    br: PTRUINT=0;
+    canDoAddressSwitch: boolean=false;
 
-    bigvex: boolean;
-    VEXvvvv: integer;
 
-    cannotencodewithrexw: boolean;
+    bigvex: boolean=false;
+    VEXvvvv: integer=0;
+
+    cannotencodewithrexw: boolean=false;
 
     //cpuinfo: TCPUIDResult;
 
     bts: TAssemblerBytes;
 begin
+  i:=0;
+  j:=0;
+  k:=0;
+  l:=0;
+  v:=0;
+  v2:=0;
+  newv:=0;
+  mnemonic:=0;
+  nroftokens:=0;
+
+  oldParamtype1:=ttInvalidtoken;
+  oldParamtype2:=ttInvalidtoken;
+  paramtype1:=ttInvalidtoken;
+  paramtype2:=ttInvalidtoken;
+  paramtype3:=ttInvalidtoken;
+  paramtype4:=ttInvalidtoken;
+  parameter1:='';
+  parameter2:='';
+  parameter3:='';
+  parameter4:='';
+
+  vtype:=0;
+  v2type:=0;
+  signedvtype:=0;
+  signedv2type:=0;
+
+
+  setlength(bts,0);
+
   faddress:=address;
   VEXvvvv:=$f;
   needsAddressSwitchPrefix:=false;
@@ -4589,6 +4785,7 @@ begin
 
   setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
+
 
 
   {$ifdef checkassembleralphabet}
@@ -4601,6 +4798,12 @@ begin
 
   relativeAddressLocation:=-1;
   rexprefix:=0;
+  RexPrefixLocation:=0;
+  actualdisplacement:=0;
+  needsAddressSwitchPrefix:=false;
+  usesVexSIB:=false;
+
+
   result:=false;
 
   tokenize(opcode,tokens);
@@ -4718,7 +4921,7 @@ begin
 
     'N': //N*
     begin
-      if (length(tokens)=2) and ((tokens[0]='NOP') and (length(tokens[1])>=1) and (tokens[1][1] in ['a'..'f','A'..'F','0'..'9'])) then //NOP HEXVALUE
+      if (processhandler.SystemArchitecture=archX86) and (length(tokens)=2) and ((tokens[0]='NOP') and (length(tokens[1])>=1) and (tokens[1][1] in ['a'..'f','A'..'F','0'..'9'])) then //NOP HEXVALUE
       begin
         try
           j:=HexStrToInt(tokens[1]);
@@ -4784,6 +4987,7 @@ begin
     //handle it by the arm assembler
    // for i:=0 to nroftokens do
    //   tempstring:=tempstring+tokens[i]+' ';   //seperators like "," are gone, but the armassembler doesn't really care about that  (only tokens matter)
+    outputdebugstring('TSingleLineAssembler.Assembler: Assembling ARM instruction '+opcode+' at '+inttohex(address,8));
     exit(ArmAssemble(address, opcode, bytes));
   end;
 
@@ -4829,7 +5033,7 @@ begin
   if processhandler.is64Bit then
     overrideFar:=(Pos('FAR ',tempstring)>0)
   else
-    overrideLong:=overrideLong or (Pos('FAR ',tempstring)>0);
+    overrideFar:=overrideLong or (Pos('FAR ',tempstring)>0);
 
 
   if not (overrideShort or overrideLong or overridefar) and (assemblerPreference<>apNone) then //no override choice by the user and not a normal preference
@@ -5101,11 +5305,11 @@ begin
             //jmp short +14
             //jmp far address
             bytes:=[];
-            assemble(tokens[mnemonic]+' +2', address, bytes);
+            assemble(tokens[mnemonic]+' +2', 0, bytes);
 
             bts:=[];
 
-            assemble('jmp short +e', address+length(bytes), bts);
+            assemble('jmp short +e', 0, bts);
             insert(bts, bytes,length(bytes));
 
             bts:=[];
@@ -5163,6 +5367,7 @@ begin
 
 
     canDoAddressSwitch:=opcodes[j].canDoAddressSwitch;
+    usesVexSIB:=opcodes[j].vexSIB;
 
 
     case opcodes[j].paramtype1 of
@@ -6208,6 +6413,28 @@ begin
             begin
               addopcode(bytes,j);
               result:=createmodrm(bytes,getreg(parameter1),parameter2);
+
+              if opcodes[j].continueSearchingWhenOffsetTooBig and (relativeAddressLocation<>-1) then //kinda hacky
+              begin
+                //uses riprelative addressing and there is an alternate version
+                if actualdisplacement>(address+length(bytes)) then
+                  v:=actualdisplacement-(address+length(bytes))
+                else
+                  v:=(address+length(bytes))-actualdisplacement;
+
+                if v>$7fffffff then
+                begin
+                  OutputDebugString('Assembler could not assemble using r32,rm32: searching of alternatives');
+
+                  setlength(bytes,0);
+                  paramtype1:=oldParamtype1;
+                  paramtype2:=oldParamtype2;
+                  relativeAddressLocation:=-1;
+                  inc(j);
+                  result:=false;
+                  continue; //find something else
+                end;
+              end;
               exit;
             end
             else
@@ -7077,6 +7304,70 @@ begin
           end;
         end;
 
+
+        if (opcodes[j].paramtype2=par_vm32x) and ((paramtype2=ttMemorylocation32) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('YMM')=false) then
+        begin
+          //ymm,vm32x,
+          if (opcodes[j].paramtype3=par_ymm) and (paramtype3=ttRegisterYMM) then
+          begin
+            //ymm,vm32x,ymm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm32y) and ((paramtype2=ttMemorylocation32) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('XMM')=false) then
+        begin
+          //ymm,vm32y,
+          if (opcodes[j].paramtype3=par_ymm) and (paramtype3=ttRegisterYMM) then
+          begin
+            //ymm,vm32y,ymm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm64x) and ((paramtype2=ttMemorylocation64) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('YMM')=false) then
+        begin
+          //ymm,vm64x,
+          if (opcodes[j].paramtype3=par_ymm) and (paramtype3=ttRegisterYMM) then
+          begin
+            //ymm,vm64x,ymm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm64y) and ((paramtype2=ttMemorylocation64) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('XMM')=false) then
+        begin
+          //ymm,vm64y,
+          if (opcodes[j].paramtype3=par_ymm) and (paramtype3=ttRegisterYMM) then
+          begin
+            //ymm,vm64y,ymm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
       end;
 
 
@@ -7318,6 +7609,70 @@ begin
                 add(bytes,[strtoint(parameter4)]);
                 exit;
               end;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm32x) and ((paramtype2=ttMemorylocation32) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('YMM')=false) then
+        begin
+          //xmm,vm32x,
+          if (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //xmm,vm64x,xmm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm32y) and ((paramtype2=ttMemorylocation32) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('XMM')=false) then
+        begin
+          //xmm,vm32x,
+          if (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //xmm,vm64x,xmm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm64x) and ((paramtype2=ttMemorylocation64) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('YMM')=false) then
+        begin
+          //xmm,vm64x,
+          if (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //xmm,vm64x,xmm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_vm64y) and ((paramtype2=ttMemorylocation64) or ismemorylocationdefault(parameter2)) and (parameter2.Contains('XMM')=false) then
+        begin
+          //xmm,vm64y,
+          if (opcodes[j].paramtype3=par_xmm) and (paramtype3=ttRegisterXMM) then
+          begin
+            //xmm,vm64y,xmm,
+
+            if (opcodes[j].vexExtraParam=3) then
+            begin
+              addopcode(bytes,j);
+              VEXvvvv:=(not getreg(parameter3)) and $f;
+              exit(createmodrm(bytes,getreg(parameter1),parameter2));
             end;
           end;
         end;
@@ -8071,6 +8426,18 @@ var i,j,k: integer;
     lastentry: integer=1;
     lastindex: PIndexArray=nil;
 
+    tm: TThreadManager;
+    oldReleaseThreadVars: procedure;
+
+procedure releasesla;
+begin
+  if sla<>nil then
+    freeandnil(sla);
+
+  if assigned(oldReleaseThreadVars) then
+    oldReleaseThreadVars;
+end;
+
 initialization
 //setup the index for the assembler
 
@@ -8079,9 +8446,9 @@ initialization
     assemblerindex[i].startentry:=-1;
     assemblerindex[i].NextEntry:=-1;
     assemblerindex[i].SubIndex:=nil;
+    k:=0;
     for j:=lastentry to opcodecount do
     begin
-
       if ord(opcodes[j].mnemonic[1])=(ord('A')+i) then
       begin
         //found the first entry with this as first character
@@ -8101,6 +8468,8 @@ initialization
     end;
 
   end;
+
+
 
   if assemblerindex[25].startentry<>-1 then
     assemblerindex[25].NextEntry:=opcodecount;
@@ -8142,10 +8511,18 @@ initialization
     end;
   end;
 
-  SingleLineAssembler:=TSingleLineassembler.create;
+
+  GetThreadManager(tm);
+  oldReleaseThreadVars:=tm.ReleaseThreadVars;
+  tm.ReleaseThreadVars:=@ReleaseSLA;
+  SetThreadManager(tm);
+
+  sla:=TSingleLineassembler.create;
 
 finalization
-  if SingleLineAssembler<>nil then
-    SingleLineAssembler.free;
+
+  if sla<>nil then
+    freeandnil(sla);
+
 
 end.

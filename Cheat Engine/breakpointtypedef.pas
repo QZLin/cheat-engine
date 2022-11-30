@@ -56,6 +56,7 @@ type
     tracecount: integer;
     traceendcondition: pchar;
     tracestepOver: boolean; //when set the tracer will step over instead of single step
+    traceStepOverRep: boolean; //when set the tracer will step over rep instructions
     traceNoSystem: boolean; //when set the tracer will step over system module addresses
     traceStayInsideModule: boolean; //when set the tracer will step over any address not inside the startmodule
     traceStartmodulebase: ptruint;
@@ -71,7 +72,8 @@ type
     OneTimeOnly: boolean; //true if the breakpoint should be removed after the first time it is hit
     StepOverBp: boolean;
 
-    changereg: tregistermodificationBP;
+    changereg: tregistermodificationBP; //todo: obsolete this and replace by just changeregEx
+    changeregEx: TRegisterModificationBPEx;
 
     conditonalbreakpoint: record
       script: pchar;

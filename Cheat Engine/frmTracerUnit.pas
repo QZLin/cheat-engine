@@ -14,7 +14,7 @@ uses
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
   Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler,
-  debuggertypedefinitions, betterControls;
+  debuggertypedefinitions, betterControls, LastDisassembleData;
 
 type
   TTraceDebugInfo=class
@@ -120,6 +120,7 @@ type
     pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
+    SaveDialogText: TSaveDialog;
     sbShowFloats: TSpeedButton;
     sbShowstack: TSpeedButton;
     sflabel: TLabel;
@@ -186,6 +187,7 @@ type
     fSkipconfig: boolean;
 
     stepover: boolean;
+    stepoverrep: boolean;
     nosystem: boolean;
 
     finddialog: TfrmFindDialog;
@@ -225,7 +227,7 @@ type
     returnfromignore: boolean;
 
     isdbvminterface: boolean; //faster than xxx is tdbvmdebuggerinterface
-
+    LastDisassembleData: TLastDisassembleData;
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     procedure finish;
@@ -571,6 +573,8 @@ begin
 
     s:=currentda.disassemble(a, s2);
 
+    lastDisassembleData:=currentda.LastDisassembleData;
+
     datasize:=currentda.LastDisassembleData.datasize;
     if datasize=0 then
       datasize:=4;
@@ -787,7 +791,7 @@ var
   pref: string;
 begin
   //save the results of the trace to disk
-  if savedialog1.Execute then
+  if SaveDialogText.Execute then
   begin
     z:=tstringlist.create;
     try
@@ -848,7 +852,7 @@ begin
         end;
       end;
 
-      z.SaveToFile(savedialog1.filename);
+      z.SaveToFile(SaveDialogText.filename);
     finally
       z.free;
     end;
@@ -948,7 +952,7 @@ begin
           {$ifdef cpu64}
           different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));
           {$else}
-          different:=CompareMem(@compareinfo.c.ext.XMMRegisters.LegacyXMM[0], @thisinfo.c.ext.XMMRegisters.LegacyXMM[0], xmmcount*sizeof(TJclXMMRegister));
+          different:=CompareMem(@compareinfo.c.ext.XMMRegisters[0], @thisinfo.c.ext.XMMRegisters[0], xmmcount*sizeof(M128A));
           {$endif}
 
           if not different then
@@ -1322,6 +1326,7 @@ begin
       startcondition:=edtStartCondition.text;
       stopcondition:=edtStopCondition.text;
       stepover:=cbStepOver.checked;
+      stepoverrep:=cbStepOverRep.checked;
       nosystem:=cbSkipSystemModules.checked;
 
       StayInsideModule:=cbStayInsideInitialModule.checked;
@@ -1445,14 +1450,14 @@ begin
             memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
           //set the breakpoint
-          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, breakpointmethod, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, nosystem);
+          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, breakpointmethod, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, stepoverrep, nosystem);
         end
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem, stayinsidemodule)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, stepoverrep, Nosystem, stayinsidemodule)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem, StayInsideModule);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, stepoverrep, nosystem, StayInsideModule);
         end;
       end;
     end;
@@ -1566,6 +1571,9 @@ begin
     try
       f.ReadBuffer(temp, sizeof(temp));
       version:=temp;
+      if not (version in [0,1]) then
+        raise exception.create('Unsupported tracefile');
+
 
       f.readbuffer(temp, sizeof(temp));
 
@@ -1582,8 +1590,15 @@ begin
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
         raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
+      dereference:=false;
       for i:=0 to lvTracer.Items.Count-1 do
+      begin
         lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+        if not dereference and (TTraceDebugInfo(lvTracer.Items[i].Data).bytesize>0) then
+          dereference:=true;
+      end;
+
+
 
       miOpenTraceForCompare.Enabled:=true;
       miOpenTraceForCompare.Visible:=true;
@@ -1881,7 +1896,7 @@ begin
             script[1]:='local referencedBytes='+bytesToLuaByteTableString(TTraceDebugInfo(lvTracer.Items[i].data).bytes, TTraceDebugInfo(lvTracer.Items[i].data).bytesize);
 
           if usesInstruction then
-            script[2]:='local instruction=[['+TTraceDebugInfo(lvTracer.Items[i].data).instruction+']]';
+            script[2]:='local instruction=[['+TTraceDebugInfo(lvTracer.Items[i].data).instruction+' ]]';
 
           if CheckIfConditionIsMetContext(0, c, script.text) then
           begin

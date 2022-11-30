@@ -15,6 +15,9 @@ uses
 
 var
 //  AllIncludesCustomType: boolean;
+
+  mtid: TThreadID;
+
   overridefont: TFont;
   aprilfools: boolean;
 
@@ -38,7 +41,9 @@ var
   networkRPMCacheTimeout: single=1.0;
 
   systemtype: integer;
+  {$if defined(CPU386) or defined(CPUX86_64)}
   old8087CW: word;  //you never know...
+  {$endif}
   ProcessSelected: Boolean;
   //ProcessID: Dword; //deperecated
   //ProcessHandle: Thandle;
@@ -156,10 +161,14 @@ var
 
   luagc_MinSize: dword;
 
+  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}true{$else}false{$endif};
   SkipVirtualProtectEx: boolean;
   alwaysforceload: boolean;
 
   allocsAddToUnexpectedExceptionList: boolean;
+
+  WarnOnNearbyAllocationFailure: boolean=true; //not saved in settings. Inconvenience the user every fucking time they restart (Learn to use 14 byte jmps people)
+  NearbyAllocationFailureFatal: boolean=true;
 
   {$ifdef darwin}
   speedhack_HookMachAbsoluteTime:boolean;
@@ -178,9 +187,18 @@ var
 
   forceCR3VirtualQueryEx: boolean;
 
+  skippdb: boolean;
+
+
+  systemSupportsIntelPT: boolean=false;
+  useintelptfordebug: boolean;
+  inteliptlogfindwhatroutines: boolean;
+  maxiptconfigsize: integer;
+  hideiptcapability: boolean; //in case it's unstable and you really really do not wish to accidentally use it
 
 
 implementation
+
 
 end.
 

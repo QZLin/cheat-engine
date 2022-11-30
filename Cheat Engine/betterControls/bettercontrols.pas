@@ -13,10 +13,10 @@ uses
   newScrollBox, {$ifndef bc_skipsynedit}newSynEdit,{$endif}
   newPageControl, newtabcontrol, newStatusBar,
   newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
-  newToggleBox,
+  newToggleBox, newvirtualstringtree,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 {$else}
-uses macport, graphics,math, bettercontrolColorSet;
+uses {macport,} graphics,math, bettercontrolColorSet;
 {$endif}
 
 {$ifdef windows}
@@ -53,6 +53,7 @@ type
   THintWindowClass =class of TNewHintwindow;
 
   TToggleBox=class(TNewToggleBox);
+  TLazVirtualStringTree=class(TNewLazVirtualStringTree);
 
 {$endif}
 var
@@ -90,6 +91,10 @@ var
 
 
   procedure registerDarkModeHintHandler;
+  {$endif}
+
+  {$ifdef darwin}
+  type BOOL=boolean;
   {$endif}
   function ShouldAppsUseDarkMode:BOOL;
   function incColor(c: tcolor; amount: integer): tcolor;
@@ -142,6 +147,10 @@ function ShouldAppsUseDarkMode:BOOL; stdcall;
 var reg: tregistry;
 {$endif}
 begin
+  {$IFDEF FORCEDDARKMODE}
+  UsesDarkMode:=dmYes;
+  exit(true);
+  {$ENDIF}
   {$ifdef windows}
   if darkmodebuggy then exit(false);
 
@@ -273,7 +282,7 @@ initialization
       if not assigned(FlushMenuThemes) then FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
 
 
-      AllowDarkModeForApp(1);  //3 is disable, 2=force on, 1=system default
+      AllowDarkModeForApp({$IFDEF FORCEDDARKMODE}2{$ELSE}1{$ENDIF});  //3 is disable, 2=force on, 1=system default
 
 
       FlushMenuThemes;

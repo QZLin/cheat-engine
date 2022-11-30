@@ -5,6 +5,8 @@ program cheatengine;
 uses
   {$ifdef darwin}
   cthreads,
+
+
   {$endif}
   first,
   {$IFDEF UNIX}{$IFDEF UseCThreads}
@@ -117,7 +119,9 @@ uses
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
-  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64;
+  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
+  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
+  iptlogdisplay, LuaVirtualStringTree;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -269,6 +273,10 @@ begin
   end;
 end;
 
+procedure setScaledTrue;
+begin
+  application.Scaled:=true; //put it here because the lazarus ide will just nuke it on setting change otherwise
+end;
 
 var
   i: integer;
@@ -278,8 +286,9 @@ var
 
   path: string;
   noautorun: boolean;
+
 begin
-  Application.Title:='Runtime Mod 7.4';
+  Application.Title:='Cheat Engine 7.4.2';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;
@@ -314,6 +323,9 @@ begin
       break;
     end;
   end;
+
+  if istrainer then setScaledTrue;
+
 
   if not istrainer then
   begin
@@ -391,7 +403,6 @@ begin
   handleparameters;
 
   OutputDebugString('Starting CE');
-
 
 
   Application.Run;

@@ -67,8 +67,10 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 
 implementation
 
-uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions, StringHashList;
+uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}
+  ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
+  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions,
+  StringHashList, globals, networkInterfaceApi;
 
 
 type
@@ -416,9 +418,16 @@ var
   phandle: THandle;
 
   _tcc: TTCC;
-  s: string;
+  s,s2: string;
 
   tempsymbollist: TStringlist;
+
+  oldprotection: dword;
+  tccregions: TTCCRegionList;
+
+  writesuccess: boolean;
+  writesuccess2: boolean;
+
 begin
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
@@ -426,6 +435,7 @@ begin
   tempsymbollist:=tstringlist.create;
 
   errorlog:=tstringlist.create;
+  tccregions:=TTCCRegionList.Create;
 
   dataForPass2.cdata.address:=align(dataForPass2.cdata.address,16);
 
@@ -443,6 +453,11 @@ begin
     else
     begin
       phandle:=processhandle;
+{$ifdef windows}
+      if getConnection<>nil then
+        _tcc:=tcc_linux
+      else
+{$endif}
        _tcc:=tcc;
 
       psize:=processhandler.pointersize;
@@ -458,10 +473,13 @@ begin
 
 
 
-    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, tccregions, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
       begin
+        tccregions.Clear;
+
         //this will be a slight memoryleak but whatever
         //allocate 4x the amount of memory needed
 {$ifdef windows}
@@ -469,7 +487,13 @@ begin
           newAddress:=ptruint(KernelAlloc(4*bytes.size))
         else
 {$endif}
-          newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
+        begin
+          if SystemSupportsWritableExecutableMemory then
+            newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE))
+          else
+            newAddress:=ptruint(VirtualAllocEx(phandle,nil,bytes.size,mem_reserve or mem_commit, PAGE_READWRITE)); //these systems already waste memory as is so no *4
+
+        end;
 
         if newAddress<>0 then
         begin
@@ -481,7 +505,7 @@ begin
           bytes.clear;
           secondarylist.Clear;
           errorlog.clear;
-          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
+          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, tccregions, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
             //wtf? something really screwed up here
 {$ifdef windows}
@@ -511,19 +535,48 @@ begin
       end;
 
       //still here so compilation is within the given parameters
-      writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+
+      if not SystemSupportsWritableExecutableMemory then //could have been made execute readonly earlier, undo that here
+        virtualprotectex(processhandle,pointer(dataforpass2.cdata.address),bytes.size,PAGE_READWRITE,oldprotection);
+
+
+
+      OutputDebugString('Writing c-code to '+dataforpass2.cdata.address.ToHexString+' ( '+bytes.size.ToString+' bytes )');
+      writesuccess:=writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+      {$ifdef darwin}
+      if (writesuccess) then
+      begin
+        outputdebugstring('success. Wrote:');
+        s:='';
+        for i:=0 to bytes.size-1 do
+        begin
+          s:=s+pbyte(bytes.memory)[i].ToHexString(2)+' ';
+        end;
+
+        outputdebugstring(s);
+      end;
+      {$endif}
+
 
       //fill in links
       for i:=0 to length(dataForPass2.cdata.linklist)-1 do
       begin
         j:=secondarylist.IndexOf(dataforpass2.cdata.linklist[i].name);
-        if j=-1 then raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
+        if j=-1 then
+        begin
+          raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
+        end;
 
         k:=tempsymbollist.IndexOf(dataForPass2.cdata.linklist[i].fromname);
-        if k=-1 then exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+        if k=-1 then
+        begin
+          raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+        end;
 
         a:=ptruint(tempsymbollist.Objects[k]);
-        writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
+        writesuccess2:=writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
       end;
 
 
@@ -566,6 +619,20 @@ begin
             symbollist.AddSymbol('',tempsymbollist[i], ptruint(tempsymbollist.Objects[i]), 1);
         end;
       end;
+
+      if not SystemSupportsWritableExecutableMemory then
+      begin
+        //apply protections
+        for i:=0 to tccregions.Count-1 do
+          virtualprotectex(processhandle, pointer(tccregions[i].address), tccregions[i].size, tccregions[i].protection,oldprotection);
+      end;
+
+      if not writesuccess then
+        raise exception.create('Failure writing the generated c-code to memory');
+
+
+      if not writesuccess2 then
+        raise exception.create('Failure writing referenced addresses');
     end
     else
     begin
@@ -582,6 +649,7 @@ begin
     freeandnil(dataForPass2.cdata.cscript);
 
     freeandnil(tempsymbollist);
+    freeandnil(tccregions);
   end;
 end;
 
@@ -663,7 +731,6 @@ var
   ms: TMemorystream;
   bytesizeneeded: integer;
 
-  _tcc: TTCC;
 begin
 
   s:=trim(script[i]);
@@ -674,10 +741,6 @@ begin
     dataForPass2.cdata.cscript:=tstringlist.create;
 
 
-  if targetself then
-    _tcc:=tccself
-  else
-    _tcc:=tcc;
 
   scriptstartlinenr:=ptruint(script.Objects[i]);
 
@@ -950,6 +1013,8 @@ begin
         32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
         48..111: s:='writeFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+','+parameters[j].varname+')';
         112..143: s:='writeDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+','+parameters[j].varname+')';
+        else
+          s:='';
       end;
 
       luascript.add(s);
@@ -1218,10 +1283,17 @@ begin
       if targetself then
         _tcc:=tccself
       else
-        _tcc:=tcc;
-
+      begin
+        {$ifdef windows}
+        if getConnection<>nil then
+          _tcc:=tcc_linux
+        else
+        {$endif}
+          _tcc:=tcc;
+      end;
 
       //clipboard.AsText:=dataForPass2.cdata.cscript.text;
+
 
       ms:=TMemoryStream.Create;
       errorlog:=tstringlist.create;

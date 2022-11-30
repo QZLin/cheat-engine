@@ -1,25 +1,31 @@
 object frmTracerConfig: TfrmTracerConfig
   Left = 557
-  Height = 383
+  Height = 399
   Top = 115
   Width = 288
   AutoSize = True
-  BorderStyle = bsSingle
+  BorderIcons = []
   Caption = 'Break and Trace config'
-  ClientHeight = 383
+  ClientHeight = 399
   ClientWidth = 288
+  OnConstrainedResize = FormConstrainedResize
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object edtMaxTrace: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 16
     Height = 23
     Top = 68
-    Width = 200
+    Width = 256
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
+    BorderSpacing.Right = 16
     TabOrder = 2
     Text = '1000'
   end
@@ -55,11 +61,15 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 16
     Height = 23
     Top = 146
-    Width = 200
+    Width = 256
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
+    BorderSpacing.Right = 16
     TabOrder = 4
   end
   object cbDereferenceAddresses: TCheckBox
@@ -92,7 +102,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 264
+    Top = 283
     Width = 105
     Caption = 'Break on Access'
     TabOrder = 10
@@ -105,7 +115,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 124
     Height = 19
-    Top = 264
+    Top = 283
     Width = 97
     BorderSpacing.Left = 3
     Caption = 'Break on Write'
@@ -123,6 +133,7 @@ object frmTracerConfig: TfrmTracerConfig
     Top = 207
     Width = 183
     Caption = 'Step over instead of single step'
+    OnChange = cbStepOverChange
     TabOrder = 7
   end
   object cbSkipSystemModules: TCheckBox
@@ -131,7 +142,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
-    Top = 245
+    Top = 264
     Width = 131
     Caption = 'Skip system modules'
     TabOrder = 9
@@ -143,7 +154,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 67
     Height = 30
-    Top = 343
+    Top = 362
     Width = 154
     AutoSize = True
     BorderSpacing.Top = 2
@@ -199,11 +210,15 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label3
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 16
     Height = 23
     Top = 107
-    Width = 200
+    Width = 256
+    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
+    BorderSpacing.Right = 16
     TabOrder = 3
   end
   object GroupBox1: TGroupBox
@@ -211,7 +226,7 @@ object frmTracerConfig: TfrmTracerConfig
     AnchorSideTop.Side = asrBottom
     Left = 18
     Height = 58
-    Top = 283
+    Top = 302
     Width = 262
     AutoSize = True
     Caption = 'Breakpoint method'
@@ -284,13 +299,26 @@ object frmTracerConfig: TfrmTracerConfig
   end
   object cbStayInsideInitialModule: TCheckBox
     AnchorSideLeft.Control = cbStepOver
+    AnchorSideTop.Control = cbStepOverRep
+    AnchorSideTop.Side = asrBottom
+    Left = 16
+    Height = 19
+    Top = 245
+    Width = 152
+    Caption = 'Stay inside initial module'
+    TabOrder = 8
+  end
+  object cbStepOverRep: TCheckBox
+    AnchorSideLeft.Control = cbStepOver
     AnchorSideTop.Control = cbStepOver
     AnchorSideTop.Side = asrBottom
     Left = 16
     Height = 19
     Top = 226
-    Width = 152
-    Caption = 'Stay inside initial module'
-    TabOrder = 8
+    Width = 154
+    Caption = 'Step over rep instructions'
+    Checked = True
+    State = cbChecked
+    TabOrder = 14
   end
 end

@@ -60,6 +60,36 @@ typedef struct
 
 } ProcessListEntry, *PProcessListEntry;
 
+typedef struct
+{
+  int ReferenceCount;
+  int processListIterator;
+  int processCount;
+  PProcessListEntry processList;
+} ProcessList, *PProcessList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int moduleListIterator;
+  int moduleCount;
+  PModuleListEntry moduleList;
+} ModuleList, *PModuleList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int threadListIterator;
+  int threadCount;
+  int *threadList;
+} ThreadList, *PThreadList;
+
+typedef struct
+{
+  int socket;
+  char* pipename;
+} PipeData, *PPipeData;
+
 #pragma pack(1)
 
 typedef struct
@@ -153,6 +183,11 @@ typedef struct {
   pthread_mutex_t debugEventQueueMutex; //probably not necessary as all queue operations are all done in the debuggerthread of the process
 
   struct debugEventQueueHead debugEventQueue;
+
+  uintptr_t dlopen;
+  int dlopenalt; //when not 0 this means that there is a 3th param: caller
+  uintptr_t dlopencaller;
+  uintptr_t mmap;
 } ProcessData, *PProcessData;
 
 
@@ -240,12 +275,24 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg, int wasWatchpoint);
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
 
-int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
-int SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
+BOOL GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
+BOOL SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
+
+int ptrace_attach_andwait(int pid);
+
+int WakeDebuggerThread();
+int windowsProtectionToLinux(uint32_t windowsprotection);
+uint32_t linuxProtectionToWindows(int prot);
+
+HANDLE OpenPipe(char *pipename, int timeout);
+int ReadPipe(HANDLE ph, void* destination, int size, int timeout);
+int WritePipe(HANDLE ph, void* source, int size, int timeout);
+
+uint64_t getTickCount();
 
 void initAPI();
 

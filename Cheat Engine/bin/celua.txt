@@ -11,7 +11,7 @@ Global Functions:
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 getCheatEngineFileVersion(): Returns the full version data of the cheat engine version. A raw integer, and a table containing major, minor, release and build
 
-getOperatingSystem(): Returns 0 for Windows, 1 for Mac
+getOperatingSystem(): Returns 0 if CE is running in Windows, 1 for Mac
 
 darkMode(): Returns true if CE is running in windows Dark Mode. Has no effect on mac
 
@@ -19,6 +19,7 @@ activateProtection(): Prevents basic memory scanners from opening the cheat engi
 enableDRM(altitude OPTIONAL, secondaryprocessid OPTIONAL ) : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)  The secondaryprocessid lets you protect another process. E.g the game itself, so they can't easily see what you change 
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
+setMemoryProtection(address, size, {R:boolean; W: Boolean; X: Boolean}): Sets the given protection on the address range. Note, some systems do not support X and W to be true at the same time
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
 loadTable(stream ,merge OPTIONAL, ignoreluascriptdialog BOOLEAN): Loads a table from a stream object
@@ -63,7 +64,7 @@ readPointer(address): In a 64-bit target this equals readQword, in a 32-bit targ
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
 readString(address, maxlength, widechar OPTIONAL) : Reads a string till it encounters a 0-terminator. Maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much. Set WideChar to true if it is encoded using a widechar formatting
-writeShortInteger(address,value) / writeByte(address,value) : Writes a 16-bit integer to the specified address. Returns true on success
+writeShortInteger(address,value) / writeByte(address,value) : Writes a 8-bit integer to the specified address. Returns true on success
 writeSmallInteger(address,value) : Writes a 16-bit integer to the specified address. Returns true on success
 writeInteger(address,value) : Writes a 32-bit integer to the specified address. Returns true on success
 writeQword(address, value): Write a 64-bit integer to the specified address. Returns true on success
@@ -126,6 +127,8 @@ writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a f
 readRegionFromFile(filename, destinationaddress)
 
 resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+getGlobalVariable(string): Returns the given variable from the main lua state. Only basic types are supported.  (Handy for new lua state threads)
+setGlobalVariable(string, something): Sets the global variable names string in the main lua state.  Only basic types are supported
 
 createRef(...): integer - Returns an integer reference that you can use with getRef. Useful for objects that can only store integers and need to reference lua objects.  (Component.Tag...)
 getRef(integer): ... - Returns whatever the reference points out
@@ -187,6 +190,7 @@ waitForExports(): Waits till all DLL Exports are loaded
 waitForDotNet(): Waits till all .NET symbols are loaded (this includes DLL Exports)
 waitForPDB(): Waits till all PDB symbols are loaded (this includes DLL Exports, and .NET)
 searchPDBWhileLoading(state: boolean): Will interrupt symbol enum to query the debughelp symbol handler about a specific symbol. This can take a while. Default is false
+
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
@@ -271,6 +275,9 @@ registerAddressLookupCallback(function(integer):string): ID
   Registers a function to be called when the name of an address is requested
 
 unregisterAddressLookupCallback(ID): Removes the callback
+
+registerGlobalStructureListUpdateNotification(function(sender)): ID -  Calls the given function each time the list is updated
+unregisterGlobalStructureListUpdateNotification(id) - removes the callback with the given ID
 
 
 registerStructureAndElementListCallback(function StructureListCallback(), function elementlistcallback(id1,id2) ) : Registers a function to be called when a structure needs to be dissected 
@@ -377,8 +384,10 @@ getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
 openFileAsProcess(filename,is64bit OPTIONAL,startaddress OPTIONAL): causes cheat engine to open the file with memory access as if it's a process
+getOpenedFileSize(): Returns the file of the opened file
 saveOpenedFile(filename OPTIONAL): Saves the changes of the opened file, set filename if you want a different file
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
+getPointerSize() : Gets the current pointersize
 setAssemblerMode(int): 0=32-bit, 1=64-bit
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
@@ -571,8 +580,9 @@ unhookWndProc(hwnd) - call this when done with the hook.  Not calling this will 
 
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
-
-
+targetIsX86(): Returns true if the target process is x86 based
+targetIsArm(): Returns true if the target process is arm based 
+targetIsAndroid(): Returns true if the target process is running on the Android OS
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
@@ -662,8 +672,6 @@ getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of 
 
 setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
 
-connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
-
 
 
 undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)
@@ -677,6 +685,11 @@ getMethodProperty(Class, propertyname): Returns a function you can use to call t
 
 registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
+
+enumRegisteredSymbols(): Returns a table with elements containing {symbolname, address, OPTIONAL {allocsize, processid, donotsave}}
+
+deleteAllRegisteredSymbols() : Deletes all symbols registered with registerSymbols, both in AA and Lua scripts (Does not remove registered symbolLists)
+
 
 getNameFromAddress(address,ModuleNames OPTIONAL=true, Symbols OPTIONAL=true, Sections OPTIONAL=false): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
 inModule(address) : returns true if the given address is inside a module
@@ -727,6 +740,7 @@ debug_isDebugging(): Returns true if the debugger has been started
 debug_getCurrentDebuggerInterface() : Returns the current debuggerinterface used (1=windows, 2=VEH 3=Kernel, nil=no debugging active)
 debug_canBreak(): Returns true if there is a possibility the target can stop on a breakpoint. 6.4+
 debug_isBroken(): Returns true if the debugger is currently halted on a thread
+debug_isStepping(): Returns true if the debugger was single stepping an instruction earlier
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 debug_breakThread(threadid): Breaks the thread with the specific threadID (Note: The thread may not break instantly and may have to be awakened first)
 
@@ -1038,6 +1052,8 @@ properties
 methods
   add(bitmap, bitmapmask OPTIONAL):integer - Adds a new bitmap the list and returns the index of the newly added entry
   draw(canvas, x,y, index) - Draws the image at the index to the specific x,y coordinates on the canvas
+  getBitmap(index, bitmap, OPTIONAL effect) - Draw the specified image to the provided bitmap. Effect can be :  0=gdeNormal, 1=gdeDisabled, 2=gdeHighlighted, 3=gdeShadowed, 4=gde1Bit
+
 
 Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
@@ -1642,6 +1658,7 @@ properties
   [] = Items[]
   Index: Integer - The index based on the parent
   AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
+  ImageIndex: integer - The image to show from the attached ImageList
   Selected: Boolean - Set to true if currently selected
   MultiSelected: Boolean - Set to true if selected as well, but not the main selected object
   Data: Pointer - Space to store 4 or 8 bytes depending on which version of CE is used
@@ -1689,6 +1706,7 @@ methods
   fullCollapse()  : Collapses all the nodes, including the children's nodes
   fullExpand() : Expands all the nodes and all their children
   saveToFile(filename): Saves the contents of the treeview to disk
+  loadFromFile(filename)
 
 
 
@@ -2202,6 +2220,8 @@ properties
   OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
   OnDestroy: function() - Called when the memoryrecord is destroyed.
   OnGetDisplayValue: function(memoryrecord,valuestring):boolean,string - This function gets called when rendering the value of a memory record. Return true and a new string to override the value shown
+  OnValueChanged: function(memoryrecord, oldvalue, newvalue): This function gets called whenever the value of a memory record has changed
+  OnValueChangedByUser: function(memoryrecord, oldvalue, newvalue):This function gets called whenever the value of a memory record has changed by the user
   DontSave: boolean - Don't save this memoryrecord and it's children
 
 methods
@@ -2698,6 +2718,7 @@ Properties:
   Offset: integer - The offset of this element
   Name: string - The name of this element
   Vartype: integer - The variable type of this element
+  DisplayMethod: string - The displaymethod of the entry : 'dtUnsignedInteger', 'dtSignedInteger' or 'dtHexadecimal'
   ChildStruct: structure - If not nil this element is a pointer to the structure defined here
   ChildStructStart: integer - The number of bytes inside the provided childstruct. (E.g: It might point to offset 10 of a certain structure)
   Bytesize: integer - The number of bytes of this element. Readonly for basic types, writable for types that require a defined length like strings and array of bytes
@@ -3239,9 +3260,13 @@ SymbolList class
 Global functions
   createSymbolList() : Creates an empty symbollist
   getMainSymbolList(): Returns the symhandler internal symbol list (Note: This does not contain .net, modulelist, or other info)
+  enumRegisteredSymbolLists() : Returns a table containing all the registered symbollists
 
 
 Properties
+  PID: integer - The processid it refers to
+  Name: string - A name that can be set to make it easier to identify
+
 Methods
   clear()
   getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range
@@ -3890,6 +3915,31 @@ createXMLDocumentFromStream(stream) - reads the given stream and returns an XMLD
 
 properties
 methods
+
+VirtualTreeColumn class:
+properties
+methods
+
+VirtualTreeColunmns class:
+properties
+methods
+  add() : Returns a new VirtualTreeColumn object
+
+VirtualStringTree class:
+properties
+  OnGetTextEvent: function(sender, columnindex, nodeindex, NodeInfo, texttype): string - return the string you wish the field to have
+methods
+  addChild(parent)
+  nodeInfoToTable(NodeInfo): table - Converts a NodeInfo pointer (userdata) to a readable structure. Fields: self, index, childcount, nodeheight, states, align, checkstate, totalcount, totalheight, parent, prevsibling, firstchild, lastchild, data
+  tableToNodeInfo(table): NodeInfo
+
+
+
+----CEServer----
+connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
+isConnectedToCEServer(): boolean - returns true if currently connected to a ceserver
+getCEServerPath(): string - returns the path where ceserver is located on the target
+
 
 
 ce lua extensions:

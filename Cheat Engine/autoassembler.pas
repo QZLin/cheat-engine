@@ -23,7 +23,7 @@ uses
    {$endif}
    Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave,
+   ProcessHandlerUnit, lua, lualib, lauxlib, LuaClass, commonTypeDefs, OpenSave,
    SymbolListHandler, tcclib,
    betterControls;
 
@@ -71,6 +71,7 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 
 var oldaamessage: boolean;
 
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryRecord=nil):boolean;
 
 implementation
@@ -82,9 +83,9 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 
 
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
-     {$ifdef windows}networkInterfaceApi,{$endif} LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types, autoassemblercode;
+     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes;
 {$endif}
 
 
@@ -174,6 +175,36 @@ var
 
   AutoAssemblerPrologues: TAutoAssemblerPrologues;
   AutoAssemblerProloguesPostAOBSCAN: TAutoAssemblerPrologues;
+
+
+type
+  TAllocWarn=class
+  public
+    preferedaddress: ptruint;
+    procedure AllocFailedQuestion;
+    procedure warn;
+  end;
+
+
+procedure TAllocWarn.AllocFailedQuestion;
+var r:TModalResult;
+begin
+  r:=MessageDlg('This script uses nearby allocation but it is impossible to allocate nearby '+preferedaddress.ToHexString+'. Please rewrite the script to function without nearby allocation.  Try executing the script anyhow and allocate on a region outside reach of 2GB? The target will crash if the script was not designed with this failure in mind', mtError,[mbyes,mbno,mbYesToAll, mbNoToAll],0);
+  if r in [mryes,mrYesToAll] then NearbyAllocationFailureFatal:=false;
+
+  if r=mrYesToAll then
+    WarnOnNearbyAllocationFailure:=false;
+end;
+
+procedure TAllocWarn.warn;
+begin
+  if MainThreadID=GetCurrentThreadId then
+    AllocFailedQuestion
+  else
+    tthread.Synchronize(nil, AllocFailedQuestion);
+end;
+
+
 
 function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 var i: integer;
@@ -311,6 +342,9 @@ var
   address: ptruint;
   count: integer;
 begin
+  if SystemSupportsWritableExecutableMemory=false then
+    protection:=PAGE_READWRITE;
+
   starttime:=gettickcount64;
 
   address:=0;
@@ -1409,35 +1443,49 @@ type tdefine=record
   name: string;
   whatever: string;
 end;
-var i,j,k,l,e: integer;
-    currentline, currentline2: string;
-    currentlinenr: integer;
-    currentlinep: pchar;
+var i: integer=0;
+    j: integer=0;
+    k: integer=0;
+    l: integer=0;
+    e: integer=0;
+    currentline: string='';
+    currentline2: string='';
+    currentlinenr: integer=0;
+    currentlinep: pchar=nil;
 
-    currentaddress: ptrUint;
-    assembled: array of tassembled;
-    x: ptruint;
-    y,op,op2:dword;
-    ok1,ok2:boolean;
+    currentaddress: ptrUint=0;
+    assembled: array of tassembled=[];
+    x: ptruint=0;
+    y:dword=0;
+    op: dword=0;
+    op2:dword=0;
+    ok1:boolean=false;
+    ok2:boolean=false;
     loadbinary: array of record
       address: string; //string since it might be a label/alloc/define
       filename: string;
-    end;
+    end=[];
 
     readmems: array of record
       bytelength: integer;
       bytes: PByteArray;
-    end;
+    end=[];
 
-    globalallocs, allocs, kallocs, sallocs: array of tcealloc;
+    //allocs:
+    globalallocs: array of tcealloc=[];
+    allocs:       array of tcealloc=[];
+    kallocs:      array of tcealloc=[];
+    sallocs:      array of tcealloc=[];
+
+
     tempalloc: tcealloc;
-    labels: array of tlabel;
-    defines: array of tdefine;
-    fullaccess: array of tfullaccess;
-    dealloc: array of PtrUInt;
-    addsymbollist: array of string;
-    deletesymbollist: array of string;
-    createthread: array of string;
+    labels: array of tlabel=[];
+    defines: array of tdefine=[];
+    fullaccess: array of tfullaccess=[];
+    dealloc: array of PtrUInt=[];
+    addsymbollist: array of string=[];
+    deletesymbollist: array of string=[];
+    createthread: array of string=[];
 
     createthreadandwait: array of record
       name: string;
@@ -1448,78 +1496,85 @@ var i,j,k,l,e: integer;
     a,b,c,d: integer;
     s1,s2,s3: string;
 
-    slist: TStringDynArray;
-    sli: integer; //slist iterator
+    slist: TStringDynArray=[];
+    sli: integer=0; //slist iterator
 
-    diff: ptruint;
+    diff: ptruint=0;
 
 
     assemblerlines: array of record
       linenr: integer;
       line: string;
-    end;
+    end=[];
 
-    exceptionlist: TAAExceptionInfoList;
+    exceptionlist: TAAExceptionInfoList=[];
 
-    varsize: integer;
-    tokens: tstringlist;
-    baseaddress: ptrUint;
+    varsize: integer=0;
+    tokens: tstringlist=nil;
+    baseaddress: ptrUint=0;
 
-    multilineinjection: tstringlist;
-    include: tstringlist;
+    multilineinjection: tstringlist=nil;
+    include: tstringlist=nil;
     testdword,bw: dword;
-    testPtr: ptrUint;
-    binaryfile: tmemorystream;
+    testPtr: ptrUint=0;
+    binaryfile: tmemorystream=nil;
 
-    incomment: boolean;
+    incomment: boolean=false;
 
-    bytebuf: PByteArray;
+    bytebuf: PByteArray=nil;
 
-    processhandle: THandle;
-    ProcessID: DWORD;
+    processhandle: THandle=0;
+    ProcessID: DWORD=0;
 
-    bytes: tbytes;
-    oldprefered: ptrUint;
-    prefered: ptrUint;
-    protection: dword;
+    bytes: tbytes=[];
+    oldprefered: ptrUint=0;
+    prefered: ptrUint=0;
+    protection: dword=0;
 
-    oldhandle: thandle;
-    oldsymhandler: TSymHandler;
+    oldhandle: thandle=0;
+    oldsymhandler: TSymHandler=nil;
 
 
-    disassembler: TDisassembler;
+    disassembler: TDisassembler=nil;
 
-    threadhandle: THandle;
+    threadhandle: THandle=0;
 
-    potentiallabels: TStringlist;
+    potentiallabels: TStringlist=nil;
 
      {$ifdef windows}
-    connection: TCEConnection;
+    connection: TCEConnection=nil;
     {$endif}
 
     mi: TModuleInfo;
-    aaid: longint;
-    strictmode: boolean;
+    aaid: longint=0;
+    strictmode: boolean=false;
+    hastryexcept: boolean=false;
+    //aggressiveAlloc: boolean;
+    createthreadandwaitid: integer=0;
 
-    hastryexcept: boolean;
-    createthreadandwaitid: integer;
+    vpe: boolean=false;
 
-    vpe: boolean;
-
-    nops: Tassemblerbytes;
-    mustbefar: boolean;
-    usesaobscan: boolean;
+    nops: Tassemblerbytes=[];
+    mustbefar: boolean=false;
+    usesaobscan: boolean=false;
 
     dataForAACodePass2: TAutoAssemblerCodePass2Data;
 
 
     debug_getAddressFromScript: boolean=false;
 
-    function getAddressFromScript(name: string): ptruint;
+    function getAddressFromScript(name: string; alternate: boolean=false): ptruint;
     var
       found: boolean;
-      j: integer;
+      j,k: integer;
+      temps: string;
     begin
+      if name='' then
+      begin
+        OutputDebugString('getAddressFromScript with an empty name');
+        exit(0);
+      end;
+
       result:=0;
       found:=false;
 
@@ -1575,6 +1630,24 @@ var i,j,k,l,e: integer;
 
       if debug_getAddressFromScript then OutputDebugString('not a registered symbol');
 
+      if (not alternate) and
+         (not processhandler.is64Bit) and
+         (name[1]='_') and
+         (name[length(name)] in ['0'..'9']) and
+         name.Contains('@')
+      then
+      begin
+        //it could be a _symbolname@###
+        j:=name.IndexOf('@');
+        temps:=name.Substring(j+1);
+        if TryStrToInt(temps,k) then
+        begin
+          //it is a _symbolname@###
+          temps:=name.Substring(1,j-1);
+          exit(getAddressFromScript(temps,true));
+        end;
+      end;
+
 
       if debug_getAddressFromScript then OutputDebugString('not found');
     end;
@@ -1621,6 +1694,12 @@ begin
 
   FillChar(dataForAACodePass2, sizeof(dataForAACodePass2),0);
 
+  connection:=nil;
+  i:=0;
+  j:=0;
+  k:=0;
+  l:=0;
+  e:=0;
 
   currentaddress:=0;
 
@@ -1736,6 +1815,11 @@ begin
 
       if currentline='{$TRY}' then
         hastryexcept:=true;
+
+      //if currentline='{$AGGRESSIVEALLOC}' then
+      //  aggressiveAlloc:=true;   //1: pause game, find mem_private block even close to here with some non-allocated space free, resize resume
+      //                           //2: allocate in reserved memory
+
     end;
 
 
@@ -2593,7 +2677,11 @@ begin
               else
                 allocs[j].prefered:=0;
 
-              allocs[j].protection:=PAGE_EXECUTE_READWRITE;
+              if SystemSupportsWritableExecutableMemory then
+                allocs[j].protection:=PAGE_EXECUTE_READWRITE
+              else
+                allocs[j].protection:=PAGE_EXECUTE_READ;
+
               if uppercase(copy(currentline,1,8))='ALLOCNX(' then
                 allocs[j].protection:=PAGE_READWRITE
               else
@@ -2816,6 +2904,10 @@ begin
                   end;
                 except
                   //don't quit yet
+                  on e: exception do
+                  begin
+                    OutputDebugString('Potential labeling error:'+e.message);
+                  end
                 end;
               end;
 
@@ -3097,12 +3189,21 @@ begin
         if allocs[i].protection<>protection then
         begin
           //increment x to the next pagebase
+          {$ifdef windows}
           if (x and $fff>0) then
           begin
             y:=$1000- (x and $fff);
             inc(x,y);
             inc(allocs[i-1].size,y); //adjust the previous entry's size
           end;
+          {$else}
+          if (x and (getPageSize-1)>0) then
+          begin
+            y:=getPageSize- (x and (getPageSize-1));
+            inc(x,y);
+            inc(allocs[i-1].size,y); //adjust the previous entry's size
+          end;
+          {$endif}
 
           protection:=allocs[i].protection;
         end;
@@ -3134,7 +3235,10 @@ begin
                 if (prefered=0) and (oldprefered<>0) then
                   prefered:=oldprefered;
 
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+                if SystemSupportsWritableExecutableMemory then
+                  allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+                else
+                  allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -3149,11 +3253,25 @@ begin
 
               if allocs[j].address=0 then
               begin
-                raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
-//                if allocs[j].address=0 then
+                if WarnOnNearbyAllocationFailure then
+                begin
+                  with TAllocWarn.create do
+                  begin
+                    preferedaddress:=prefered;
+                    warn;
+                    free;
+                  end;
+                end;
 
-//                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
-//                OutputDebugString(rsFailureToAllocateMemory+' 2');
+                if NearbyAllocationFailureFatal then
+                  raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]))
+                else
+                begin
+                  if SystemSupportsWritableExecutableMemory then
+                    allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+                  else
+                    allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
+                end;
               end;
 
               if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
@@ -3198,8 +3316,11 @@ begin
           if (prefered=0) and (oldprefered<>0) then
             prefered:=oldprefered;
 
+          if SystemSupportsWritableExecutableMemory then
+            allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+          else
+            allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -3226,7 +3347,7 @@ begin
       //apply protections:
       for i:=0 to length(allocs)-1 do
       begin
-        if allocs[i].protection<>PAGE_EXECUTE_READWRITE then
+        if (not SystemSupportsWritableExecutableMemory) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
           VirtualProtectEx(processhandle, pointer(allocs[i].address), allocs[i].size, allocs[i].protection,protection);
       end;
     end;
@@ -3418,6 +3539,30 @@ begin
                       end;
                     end;
 
+                    if mustbefar=false then
+                    begin
+                      if dataForAACodePass2.cdata.cscript<>nil then
+                      begin
+                        for k:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
+                        begin
+                          if lowercase(labels[j].labelname)=lowercase(dataForAACodePass2.cdata.symbols[k].name) then
+                          begin
+                            //the c code could be outside reach from the current point
+                            testptr:=getAddressFromScript('ceinternal_autofree_ccode');
+                            if currentaddress>testptr then
+                              diff:=currentaddress-testptr
+                            else
+                              diff:=testptr-currentaddress;
+
+                            if diff>=$80000000 then
+                              mustbefar:=true;
+
+                            break;
+                          end;
+                        end;
+                      end;
+                    end;
+
                     if mustbefar then
                       currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$2000FFFFF,8))
                     else
@@ -3433,13 +3578,13 @@ begin
                 assembled[length(assembled)-1].address:=currentaddress;
                 assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
                 a:=length(assembled[length(assembled)-1].bytes);
-
                 assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
                 b:=length(assembled[length(assembled)-1].bytes);
 
                 if a>b then //pick the biggest one
                   assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
 
+                //add this instruction to the list of lines that reference this label
                 setlength(labels[j].references,length(labels[j].references)+1);
                 labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
 
@@ -3490,6 +3635,11 @@ begin
 
                 b:=length(assembled[labels[j].references[k]].bytes); //new size
                 setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
+
+                if b>a then
+                begin
+                  raise exception.create('Assembler error. The generated instruction referencing a label ended up bigger than expected. Try using the far indicator');
+                end;
 
                 if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
                 begin
@@ -3571,14 +3721,17 @@ begin
     ok2:=true;
 
     //unprotectmemory
-    for i:=0 to length(fullaccess)-1 do
+    if SystemSupportsWritableExecutableMemory then
     begin
-      virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
+      for i:=0 to length(fullaccess)-1 do
+      begin
+        virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
 
-      {$ifdef windows}
-      if (fullaccess[i].address>$80000000) and (DBKLoaded) then
-        MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
-      {$endif}
+        {$ifdef windows}
+        if (fullaccess[i].address>$80000000) and (DBKLoaded) then
+          MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
+        {$endif}
+      end;
     end;
 
     //load binaries
@@ -3745,13 +3898,21 @@ begin
       end;
     end;
 
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
+      ntsuspendProcess(processhandle);
+
+
     for i:=0 to length(assembled)-1 do
     begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
 
-      vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+      if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+        vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op)
+      else
+        vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_READWRITE,op);
+
       ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
@@ -3769,6 +3930,10 @@ begin
       end;
     end;
 
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
+      ntresumeProcess(processhandle);
+
+
     {$ifdef windows}
     if connection<>nil then  //group all writes
     begin
@@ -3776,6 +3941,7 @@ begin
         ok2:=false;
     end;
     {$endif}
+
 
     //handle the unhandled createthreadandwait blocks
     for i:=0 to length(createthreadandwait)-1 do
@@ -4050,7 +4216,6 @@ begin
         begin
           if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+rsGoTo+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
           begin
-            memorybrowser.backlist.Push(pointer(memorybrowser.disassemblerview.SelectedAddress));
             memorybrowser.disassemblerview.selectedaddress:=testptr;
             memorybrowser.show;
           end;
