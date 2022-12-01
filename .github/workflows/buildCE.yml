@@ -55,17 +55,17 @@ jobs:
       # todo: setup cache
       - name: Build 32-Bit
         if: always()
-        id: 32bit
+        id: _32bit
         shell: cmd
         run: lazbuild --build-mode="Release 32-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Build 64-Bit
         if: always()
-        id: 64bit
+        id: _64bit
         shell: cmd
         run: lazbuild --build-mode="Release 64-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Build 64-Bit O4 AVX2
         if: always()
-        id: 64bitO4
+        id: _64bitO4
         shell: cmd
         run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Zip artifact
@@ -74,7 +74,7 @@ jobs:
         run: 7z a -tzip release.zip * -r
         working-directory: "./Cheat Engine/bin"
       - name: Release artifact
-        if: steps.32bit.outcome == 'success' || steps.64bit.outcome == 'success' || steps.64bitO4.outcome == 'success'
+        if: steps._32bit.outcome == 'success' || steps._64bit.outcome == 'success' || steps._64bitO4.outcome == 'success'
         uses: actions/upload-artifact@v2
         with:
           name: Release
