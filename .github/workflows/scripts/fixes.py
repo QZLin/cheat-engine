@@ -24,7 +24,7 @@ if (virtualtreeview_package == None):
 
 #region doubletoextended fix
 filepath = path.join(path.abspath(getcwd()),
-                     "Cheat Engine/frmModifyRegsitersUnit.pas")
+                     "Cheat Engine/frmModifyRegistersUnit.pas")
 
 with open(filepath, "r") as f:
   data = f.read()
