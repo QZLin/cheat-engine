@@ -19,16 +19,25 @@ jobs:
           echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
           echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
           echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
+      - name: Cache Lazarus
+        id: cache-lazarus
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}\work
+          key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ steps.get-info.outputs.dependencies }}
       - name: Make working dir
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
         shell: cmd
         run: mkdir ${{ github.workspace }}\work
       - name: Install Lazarus
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
         shell: bash
         run: node ./.github/workflows/scripts/install.js
         env:
           LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
           FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
       - name: Install 32bit compat
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
         shell: bash
         run: node ./.github/workflows/scripts/install32bitCompat.js
         env:
