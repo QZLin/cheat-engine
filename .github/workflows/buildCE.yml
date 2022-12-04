@@ -51,7 +51,6 @@ jobs:
       - name: Apply fixes
         shell: bash
         run: py ./.github/workflows/scripts/fixes.py
-      # todo: setup cache
       - name: Build 32-Bit
         if: always()
         shell: cmd
