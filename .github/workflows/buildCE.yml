@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}\work
-          key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ steps.get-info.outputs.dependencies }}
+          key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ steps.get-info.outputs.dependencies//,/_ }}
       - name: Make working dir
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         shell: cmd
