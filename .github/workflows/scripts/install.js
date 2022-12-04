@@ -4,12 +4,12 @@ const { createWriteStream } = require("fs");
 const { get: _get } = require("https");
 
 get(
-  `https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${process.env.LAZARUS_VERSION}/lazarus-${process.env.LAZARUS_VERSION}-fpc-${process.env.FPC_VERSION}-cross-i386-win32-win64.exe`,
+  `https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${process.env.LAZARUS_VERSION}/lazarus-${process.env.LAZARUS_VERSION}-fpc-${process.env.FPC_VERSION}-win64.exe`,
   (res) => {
-    const download = createWriteStream(join(process.env.GITHUB_WORKSPACE, "/work/32bit.exe"));
+    const download = createWriteStream(join(process.env.GITHUB_WORKSPACE, "/work/64bit.exe"));
     res.pipe(download);
     download.on("finish", () => {
-      exec(`cd "${process.env.GITHUB_WORKSPACE}" && cd work && 32bit.exe /VERYSILENT /DIR=${join(process.env.GITHUB_WORKSPACE, "work/lazarus")}`);
+      exec(`cd "${process.env.GITHUB_WORKSPACE}" && cd work && 64bit.exe /VERYSILENT /DIR=${join(process.env.GITHUB_WORKSPACE, "work/lazarus")}`);
     });
   }
 );

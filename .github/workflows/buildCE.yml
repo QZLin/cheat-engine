@@ -19,36 +19,26 @@ jobs:
           echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
           echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
           echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
-      # - name: Make working dir
-      #   shell: cmd
-      #   run: mkdir ${{ github.workspace }}\work
-      # - name: Download Lazarus
-      #   shell: cmd
-      #   run: |
-      #     curl -L https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-win64.exe -O ${{ github.workspace }}\work\lazarus64bit.exe
-      #     curl -L https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-cross-i386-win32-win64.exe -O ${{ github.workspace }}\work\lazarus32bit.exe
-      # - name: Setup Lazarus
-      #   shell: cmd
-      #   run: |
-      #     ${{ github.workspace }}\work\lazarus64bit.exe /VERYSILENT /DIR=${{ github.workspace }}\work\lazarus
-      #     ${{ github.workspace }}\work\lazarus32bit.exe /VERYSILENT /DIR=${{ github.workspace }}\work\lazarus
-      # - name: Add Lazarus to path
-      #   shell: bash
-      #   run: |
-      #     echo "${{github.workspace}}\work\lazarus" >> $GITHUB_PATH
-      #     echo "${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $GITHUB_PATH
+      - name: Make working dir
+        shell: cmd
+        run: mkdir ${{ github.workspace }}\work
       - name: Install Lazarus
-        uses: gcarreno/setup-lazarus@v3.2
-        with:
-          lazarus-version: ${{ steps.get-info.outputs.lazarus }}
-          include-packages: ${{ steps.get-info.outputs.dependencies }}
-          with-cache: false
+        shell: bash
+        run: node ./.github/workflows/scripts/install.js
+        env:
+          LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
+          FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
       - name: Install 32bit compat
         shell: bash
         run: node ./.github/workflows/scripts/install32bitCompat.js
         env:
           LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
           FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
+      - name: Add Lazarus to path
+        shell: bash
+        run: |
+          echo "${{github.workspace}}\work\lazarus" >> $GITHUB_PATH
+          echo "${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $GITHUB_PATH
       - name: Apply fixes
         shell: bash
         run: py ./.github/workflows/scripts/fixes.py
@@ -72,7 +62,7 @@ jobs:
         working-directory: "./Cheat Engine/bin"
       - name: Release artifact
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"
