@@ -44,3 +44,71 @@ with open(filepath, "r") as f:
 with open(filepath, "w") as f:
   f.write(data)
 #endregion
+
+#region Direct x mess fix
+def dxN(filepath):
+  with open(filepath, "r") as f:
+    data = f.read()
+    data = data.replace(
+      """      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>""",
+    r"""      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include</AdditionalIncludeDirectories>
+    </ClCompile>"""
+    )
+    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3d")
+
+  with open(filepath, "w") as f:
+    f.write(data)
+
+dx9ProjPath = path.join(path.abspath(getcwd()), "Cheat Engine/Direct x mess/CED3D9Hook/CED3D9Hook.vcxproj")
+dx10ProjPath = path.join(path.abspath(getcwd()), "Cheat Engine/Direct x mess/CED3D10Hook/CED3D10Hook.vcxproj")
+dx11ProjPath = path.join(path.abspath(getcwd()), "Cheat Engine/Direct x mess/CED3D11Hook/CED3D11Hook.vcxproj")
+dxBaseProjPath = path.join(path.abspath(getcwd()), "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.vcxproj")
+dxBaseCppPath = path.join(path.abspath(getcwd()), "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.cpp")
+
+dxN(dx9ProjPath)
+dxN(dx10ProjPath)
+dxN(dx11ProjPath)
+dxN(dxBaseProjPath)
+
+with open(dxBaseCppPath, "r") as f:
+  data = f.read()
+  data = data.replace("D3D_FEATURE_LEVEL_11_1", r"0xb100")
+
+with open(dxBaseCppPath, "w") as f:
+  f.write(data)
+#endregion
+
+#region MonoDataCollector fix
+filepath = path.join(path.abspath(getcwd()), "Cheat Engine/MonoDataCollector/MonoDataCollector/MonoDataCollector.vcxproj")
+
+with open(filepath, "r") as f:
+  data = f.read()
+  data = data.replace("Unicode", "Multibyte")
+
+with open(filepath, "w") as f:
+  f.write(data)
+
+filepath = path.join(path.abspath(getcwd()), "Cheat Engine/MonoDataCollector/MonoDataCollector/PipeServer.cpp")
+
+with open(filepath, "r") as f:
+  data = f.read()
+  data = data.replace('GetModuleHandle(L"mono.dll")', 'GetModuleHandle("mono.dll")')
+  data = data.replace("#ifndef WINDOWS", "#ifndef _WINDOWS")
+  data = data.replace('OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()', '//OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()')
+
+with open(filepath, "w") as f:
+  f.write(data)
+#endregion
+
+#region DotNetDataCollector fix
+filepath = path.join(path.abspath(getcwd()), "Cheat Engine/DotNetDataCollector/DotNetDataCollector/DotNetDataCollector.vcxproj")
+
+with open(filepath, "r") as f:
+  data = f.read()
+  data = data.replace("4.7.2", "4.8.1")
+
+with open(filepath, "w") as f:
+  f.write(data)
+#endregion

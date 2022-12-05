@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v3
@@ -87,6 +87,96 @@ jobs:
         if: always()
         shell: cmd
         run: lazbuild --build-mode="release 64" --no-write-project "Cheat Engine/VEHDebug/vehdebug.lpi"
+      - name: Set up Cygwin
+        uses: egor-tensin/setup-cygwin@v3
+        with:
+          packages: wget
+      - name: Cache VS2013
+        if: always()
+        id: cache-vs2013
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}\vs
+          key: VS2013
+      - name: Download VS2013
+        if: steps.cache-vs2013.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget http://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso --no-check-certificate
+      - name: Unzip VS2013
+        if: steps.cache-vs2013.outputs.cache-hit != 'true'
+        shell: cmd
+        run: 7z x VS2013_RTM_DskExp_ENU.iso -oc:vs
+      - name: Intall VS2013
+        if: always()
+        shell: cmd
+        run: InstallVS2013.bat
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+      - name: Cache DirectX
+        if: always()
+        id: cache-directx
+        uses: actions/cache@v3
+        with:
+          path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
+          key: DirectX
+      - name: Download DirectX
+        if: steps.cache-directx.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe --no-check-certificate
+      - name: Install DirectX
+        if: steps.cache-directx.outputs.cache-hit != 'true'
+        shell: cmd
+        run: InstallDirectX.bat
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+      - name: Add msbuild to PATH
+        if: always()
+        uses: microsoft/setup-msbuild@v1.1.3
+      - name: Build 32-Bit Direct x mess
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=Win32'
+        working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
+      - name: Build 64-Bit Direct x mess
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=x64'
+        working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
+      - name: Build AnyCPU DotNetCompiler
+        if: always()
+        shell: cmd
+        run: 'msbuild -property: Configuration=Release'
+        working-directory: ${{ github.workspace }}\Cheat Engine\DotNetCompiler\CSCompiler
+      - name: Install WinXP C++ v141
+        if: always()
+        shell: powershell
+        run: |
+          $vs = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version "[16.0,18.0)" -prerelease -latest -utf8 -format json | ConvertFrom-Json
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify --productId $vs[0].productId --channelId $vs[0].channelId --quiet --norestart --add Microsoft.VisualStudio.Component.WinXP
+      - name: Build 32-Bit MonoDataCollector
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=Win32'
+        working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
+      - name: Build 64-Bit MonoDataCollector
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=x64'
+        working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
+      - name: Build 32-Bit DotNetDataCollector
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=Win32'
+        working-directory: ${{ github.workspace }}\Cheat Engine\DotNetDataCollector
+      - name: Build 64-Bit DotNetDataCollector
+        if: always()
+        shell: cmd
+        run: 'msbuild -property:Configuration=Release -property:Platform=x64'
+        working-directory: ${{ github.workspace }}\Cheat Engine\DotNetDataCollector
+      - name: Build DotNetInvasiveDataCollector
+        if: always()
+        shell: cmd
+        run: 'msbuild -property: Configuration=Release'
+        working-directory: ${{ github.workspace }}\Cheat Engine\DotNetInvasiveDataCollector\DotNetInterface2
+#cejvmti.sln idk, uses vs 2008
       - name: Zip artifact
         if: always()
         shell: cmd
