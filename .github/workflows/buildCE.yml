@@ -87,10 +87,8 @@ jobs:
         if: always()
         shell: cmd
         run: lazbuild --build-mode="release 64" --no-write-project "Cheat Engine/VEHDebug/vehdebug.lpi"
-      - name: Set up Cygwin
-        uses: egor-tensin/setup-cygwin@v3
-        with:
-          packages: wget
+      - name: Set up wget
+        run: choco install wget
       - name: Cache VS2013
         if: always()
         id: cache-vs2013
