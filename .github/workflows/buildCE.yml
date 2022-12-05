@@ -103,7 +103,7 @@ jobs:
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
         shell: cmd
-        run: 7z x VS2013_RTM_DskExp_ENU.iso -oc:vs
+        run: 7z x VS2013_RTM_DskExp_ENU.iso -oc:${{ github.workspace }}\vs
       - name: Intall VS2013
         if: always()
         shell: cmd
@@ -122,8 +122,8 @@ jobs:
         run: wget https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe --no-check-certificate
       - name: Install DirectX
         if: steps.cache-directx.outputs.cache-hit != 'true'
-        shell: cmd
-        run: InstallDirectX.bat
+        shell: bash
+        run: InstallDirectX.bat || true
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Add msbuild to PATH
         if: always()
