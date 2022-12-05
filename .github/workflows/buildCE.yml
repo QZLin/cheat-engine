@@ -103,7 +103,7 @@ jobs:
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
         shell: cmd
-        run: 7z x VS2013_RTM_DskExp_ENU.iso -oc:${{ github.workspace }}\vs
+        run: 7z x VS2013_RTM_DskExp_ENU.iso -o${{ github.workspace }}\vs
       - name: Intall VS2013
         if: always()
         shell: cmd
