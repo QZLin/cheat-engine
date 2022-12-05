@@ -123,7 +123,7 @@ jobs:
       - name: Install DirectX
         if: steps.cache-directx.outputs.cache-hit != 'true'
         shell: bash
-        run: InstallDirectX.bat || true
+        run: ./InstallDirectX.bat || true
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Add msbuild to PATH
         if: always()
@@ -141,7 +141,7 @@ jobs:
       - name: Build AnyCPU DotNetCompiler
         if: always()
         shell: cmd
-        run: 'msbuild -property: Configuration=Release'
+        run: 'msbuild -property:Configuration=Release'
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetCompiler\CSCompiler
       - name: Install WinXP C++ v141
         if: always()
@@ -172,7 +172,7 @@ jobs:
       - name: Build DotNetInvasiveDataCollector
         if: always()
         shell: cmd
-        run: 'msbuild -property: Configuration=Release'
+        run: 'msbuild -property:Configuration=Release'
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetInvasiveDataCollector\DotNetInterface2
 #cejvmti.sln idk, uses vs 2008
       - name: Zip artifact
