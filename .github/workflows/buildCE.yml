@@ -99,12 +99,12 @@ jobs:
       - name: Download VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
         shell: cmd
-        run: wget http://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso --no-check-certificate
+        run: wget https://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso --no-check-certificate
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
         shell: cmd
         run: 7z x VS2013_RTM_DskExp_ENU.iso -o${{ github.workspace }}\vs
-      - name: Intall VS2013
+      - name: Install VS2013
         if: always()
         shell: cmd
         run: InstallVS2013.bat

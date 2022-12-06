@@ -56,7 +56,10 @@ def dxN(filepath):
       <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include</AdditionalIncludeDirectories>
     </ClCompile>"""
     )
-    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3d")
+    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3d", 1)
+    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3d", 1)
+    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3d", 1)
+    data = data.replace("<AdditionalDependencies>d3d", r"<AdditionalDependencies>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64\d3d", 1)
 
   with open(filepath, "w") as f:
     f.write(data)
