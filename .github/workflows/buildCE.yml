@@ -138,17 +138,32 @@ jobs:
         shell: cmd
         run: 'msbuild -property:Configuration=Release -property:Platform=x64'
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
+      - name: Install component on windows 2022
+        shell: pwsh
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $componentsToAdd = @(
+            "Microsoft.Net.Component.4.6.1.SDK",
+            "Microsoft.VisualStudio.Component.WinXP"
+          )
+          [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          if ($process.ExitCode -eq 0)
+          {
+              Write-Host "components have been successfully added"
+          }
+          else
+          {
+              Write-Host "components were not installed"
+              exit 1
+          }
       - name: Build AnyCPU DotNetCompiler
         if: always()
         shell: cmd
         run: 'msbuild -property:Configuration=Release'
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetCompiler\CSCompiler
-      - name: Install WinXP C++ v141
-        if: always()
-        shell: powershell
-        run: |
-          $vs = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -version "[16.0,18.0)" -prerelease -latest -utf8 -format json | ConvertFrom-Json
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify --productId $vs[0].productId --channelId $vs[0].channelId --quiet --norestart --add Microsoft.VisualStudio.Component.WinXP
       - name: Build 32-Bit MonoDataCollector
         if: always()
         shell: cmd
