@@ -160,6 +160,7 @@ jobs:
               Write-Host "components were not installed"
               exit 1
           }
+      #devpack is at https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe
       - name: Build AnyCPU DotNetCompiler
         if: always()
         shell: cmd
