@@ -407,6 +407,15 @@ jobs:
           xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\vmdisk.*" bin\
           xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\Kernelmoduleunloader.exe" bin\
         working-directory: ${{ github.workspace }}\Cheat Engine
+      - name: Remove debug files
+        if: ${{ success() || failure() }}
+        shell: bash
+        run: |
+          rm -rf *.pdb
+          rm -rf *.iobj
+          rm -rf *.ipdb
+          rm -rf *.dbg
+        working-directory: ${{ github.workspace }}\Cheat Engine\bin
       - name: Zip artifact
         if: ${{ success() || failure() }}
         shell: cmd
