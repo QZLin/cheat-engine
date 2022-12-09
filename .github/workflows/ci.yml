@@ -8,6 +8,8 @@ on:
 jobs:
   sync_latest_from_upstream:
     runs-on: ubuntu-latest
+    outputs:
+      has_new_commits: ${{ steps.sync.outputs.has_new_commits }}
     steps:
       - uses: actions/checkout@v3
       - name: Sync upstream changes
@@ -18,3 +20,7 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: master
           upstream_sync_repo: cheat-engine/cheat-engine
+  start_build:
+    needs: sync_latest_from_upstream
+    if: needs.sync_latest_from_upstream.outputs.has_new_commits == 'true'
+    uses: ./.github/workflows/buildCE.yml

@@ -2,6 +2,7 @@ name: Build Cheat Engine
 
 on:
   workflow_dispatch:
+  workflow_call:
   push:
     branches:
       - master
@@ -106,8 +107,31 @@ jobs:
         if: steps.cache-netdevpack461.outputs.cache-hit != 'true'
         shell: cmd
         run: wget https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe --no-check-certificate
+  cache-netdevpack472:
+    runs-on: windows-2022
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache NetDevPack472
+        id: cache-netdevpack472
+        uses: actions/cache@v3
+        with:
+          path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
+          key: NetDevPack472
+      - name: Set up wget
+        if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
+        run: choco install wget
+      - name: Download NetDevPack472
+        if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget https://download.visualstudio.microsoft.com/download/pr/158dce74-251c-4af3-b8cc-4608621341c8/9c1e178a11f55478e2112714a3897c1a/ndp472-devpack-enu.exe --no-check-certificate
+      - name: Install NetDevPack472
+        if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
+        shell: bash
+        run: ./InstallNETDevPack461.bat || true
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461]
+    needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472]
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
@@ -227,8 +251,8 @@ jobs:
           key: NETDevPack461
       - name: Install NETDevPack461
         if: always()
-        shell: cmd
-        run: InstallNETDevPack461.bat
+        shell: bash
+        run: ./InstallNETDevPack461.bat || true
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Build AnyCPU DotNetCompiler
         if: always()
@@ -245,6 +269,12 @@ jobs:
         shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=x64"
         working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
+      - name: Load NetDevPack472 Cache
+        if: always()
+        uses: actions/cache@v3
+        with:
+          path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
+          key: NetDevPack472
       - name: Build 32-Bit DotNetDataCollector
         if: always()
         shell: cmd
