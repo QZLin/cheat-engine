@@ -6,7 +6,7 @@ get(`https://cheatengine.org/downloads.php`, (res) => {
     resp += chunk;
   });
   res.on("end", () => {
-    console.log(resp.match(/download_link.*?href="(<url>[^"]+)/).groups.url);
+    console.log(resp.match(/download_link.*?href="(?<url>[^"]+)/).groups.url);
   });
 });
 
