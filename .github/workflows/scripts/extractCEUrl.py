@@ -18,8 +18,6 @@ filepath = path.join(path.abspath(getcwd()), "InstallCE.bat")
 with open(filepath, "w") as f:
   f.write(r"""@ECHO OFF
 
-cd /d %~dp0\..\..\..\
-
 .\CheatEngineExtracted.exe {} {}
 
 :waitloop
