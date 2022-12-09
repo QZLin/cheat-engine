@@ -4,7 +4,7 @@ from os import getcwd, path
 
 filepath = path.join(path.abspath(getcwd()), "embedded/CompiledCode.bin")
 
-with open(filepath, "r") as f:
+with open(filepath, "r", errors="surrogateescape") as f:
   data = f.read()
   data = re.sub(r"[^a-zA-Z0-9.:/\n\r]", "", data)
   match = typing.cast(
