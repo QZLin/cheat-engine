@@ -157,7 +157,7 @@ jobs:
       - name: Download extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         shell: cmd
-        run: wget https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar --no-check-certificate
+        run: wget "https://downloads.sourceforge.net/project/innounp/innounp/innounp 0.50/innounp050.rar" --no-check-certificate
       - name: Extract extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         shell: cmd
