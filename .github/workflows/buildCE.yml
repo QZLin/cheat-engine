@@ -128,7 +128,7 @@ jobs:
       - name: Install NetDevPack472
         if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
         shell: bash
-        run: ./InstallNETDevPack461.bat || true
+        run: ./InstallNETDevPack472.bat || true
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
   build:
     needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472]
