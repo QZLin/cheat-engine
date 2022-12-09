@@ -130,8 +130,57 @@ jobs:
         shell: bash
         run: ./InstallNETDevPack472.bat || true
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
+  cache-ce-orig:
+    runs-on: windows-2022
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get Cheat Engine info
+        shell: bash
+        id: get-info
+        run: |
+          echo "ce=$(node ./.github/workflows/scripts/getCEVersion.js)" >> $GITHUB_OUTPUT
+          echo "ceurl=$(node ./.github/workflows/scripts/getCEUrl.js)" >> $GITHUB_OUTPUT
+      - name: Cache Cheat Engine
+        id: cache-cheat-engine
+        uses: actions/cache@v3
+        with:
+          path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
+          key: CheatEngine${{ steps.get-info.outputs.ce }}
+      - name: Set up wget
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        run: choco install wget
+      - name: Download installer
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget ${{ steps.get-info.outputs.ceurl }} --no-check-certificate --output-document=CheatEngine.exe
+      - name: Download extractor
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar --no-check-certificate
+      - name: Extract extractor
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: cmd
+        run: 7z e innounp050.rar
+      - name: Extract installer
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: cmd
+        run: innounp.exe CheatEngine.exe -x -m
+      - name: Get Extracted installer dl path
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        id: extracted-installer
+        shell: bash
+        run: echo "ceurl=$(py ./.github/workflows/scripts/extractCEUrl.py)" >> $GITHUB_OUTPUT
+      - name: Download Extracted Installer
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: cmd
+        run: wget ${{ steps.extracted-installer.outputs.ceurl }} --no-check-certificate --output-document=CheatEngineExtracted.exe
+      - name: Install Cheat Engine
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        shell: bash
+        run: ./InstallCE.bat || true
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472]
+    needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig]
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
@@ -143,6 +192,7 @@ jobs:
           echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
           echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
           echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
+          echo "ce=$(node ./.github/workflows/scripts/getCEVersion.js)" >> $GITHUB_OUTPUT
       - name: Load Lazarus Cache
         uses: actions/cache@v3
         with:
@@ -192,6 +242,38 @@ jobs:
         if: ${{ success() || failure() }}
         shell: cmd
         run: lazbuild --build-mode="release 64" --no-write-project "Cheat Engine/VEHDebug/vehdebug.lpi"
+      - name: Build 32-Bit allochook
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="32" --no-write-project "Cheat Engine/allochook/allochook.lpi"
+      - name: Build 64-Bit allochook
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="64" --no-write-project "Cheat Engine/allochook/allochook.lpi"
+      - name: Build ceregreset
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="Release" --no-write-project "Cheat Engine/ceregreset/ceregreset.lpi"
+      - name: Build 32-Bit tutorial
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="release 32-Bit" --no-write-project "Cheat Engine/Tutorial/tutorial.lpi"
+      - name: Build 64-Bit tutorial
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="release 64-Bit" --no-write-project "Cheat Engine/Tutorial/tutorial.lpi"
+      - name: Build windowsrepair
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="Release" --no-write-project "Cheat Engine/windowsrepair/windowsrepair.lpi"
+      - name: Build 32-Bit winhook
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="Release 32" --no-write-project "Cheat Engine/winhook/winhook.lpi"
+      - name: Build 64-Bit winhook
+        if: ${{ success() || failure() }}
+        shell: cmd
+        run: lazbuild --build-mode="Release 64" --no-write-project "Cheat Engine/winhook/winhook.lpi"
       - name: Load VS2013 Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -214,12 +296,10 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1.3
       - name: Build 32-Bit Direct x mess
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=Win32"
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
       - name: Build 64-Bit Direct x mess
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=x64"
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
       - name: Install winxp component on windows 2022
@@ -232,7 +312,7 @@ jobs:
             "Microsoft.VisualStudio.Component.WinXP"
           )
           [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
-          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart')
           $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
           if ($process.ExitCode -eq 0)
           {
@@ -256,17 +336,14 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Build AnyCPU DotNetCompiler
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release"
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetCompiler\CSCompiler
       - name: Build 32-Bit MonoDataCollector
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=Win32"
         working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
       - name: Build 64-Bit MonoDataCollector
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=x64"
         working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
       - name: Load NetDevPack472 Cache
@@ -277,20 +354,59 @@ jobs:
           key: NetDevPack472
       - name: Build 32-Bit DotNetDataCollector
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=Win32"
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetDataCollector
       - name: Build 64-Bit DotNetDataCollector
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release -property:Platform=x64"
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetDataCollector
       - name: Build DotNetInvasiveDataCollector
         if: ${{ success() || failure() }}
-        shell: cmd
         run: "msbuild -property:Configuration=Release"
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetInvasiveDataCollector\DotNetInterface2
       #cejvmti.sln idk, uses vs 2008
+      - name: Build Tcc 32-32
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 32 (Release)' -property:Platform=Win32"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Build Tcc 32-32 Linux
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 32 Linux ABI (Release)' -property:Platform=Win32"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Build Tcc 64-32
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 64 (Release)' -property:Platform=Win32"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Build Tcc 64-32 Linux
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 64 Linux ABI (Release)' -property:Platform=Win32"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Build Tcc 64-64
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 64 (Release)' -property:Platform=x64"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Build Tcc 64-64 Linux
+        if: ${{ success() || failure() }}
+        run: "msbuild -property:Configuration='Output to 64 Linux ABI (Release)' -property:Platform=x64"
+        working-directory: ${{ github.workspace }}\Cheat Engine\tcclib\win32\tcc
+      - name: Add plugins
+        if: ${{ success() || failure() }}
+        run: xcopy plugin bin\plugins\ /E/H
+        working-directory: ${{ github.workspace }}\Cheat Engine
+      - name: Cache Cheat Engine
+        if: ${{ success() || failure() }}
+        id: cache-cheat-engine
+        uses: actions/cache@v3
+        with:
+          path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
+          key: CheatEngine${{ steps.get-info.outputs.ce }}
+      - name: Copy dbk
+        if: ${{ success() || failure() }}
+        run: |
+          xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\dbk*.sys" bin\
+          xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\vmdisk.*" bin\
+          xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\Kernelmoduleunloader.exe" bin\
+        working-directory: ${{ github.workspace }}\Cheat Engine
       - name: Zip artifact
         if: ${{ success() || failure() }}
         shell: cmd
