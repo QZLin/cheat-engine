@@ -3,8 +3,9 @@ from xml.etree.ElementTree import Element, SubElement, parse
 from os import getcwd, path
 
 #region missing virtualtreeview_package
-"""
-filepath = path.join(path.abspath(getcwd()), "Cheat Engine/cheatengine.lpi")
+
+filepath = path.join(path.abspath(getcwd()),
+                     "Cheat Engine/Tutorial/tutorial.lpi")
 
 tree = parse(filepath)
 root = tree.getroot()
@@ -20,7 +21,7 @@ if (virtualtreeview_package == None):
   package = SubElement(packageItem, "PackageName")
   package.set("Value", "laz.virtualtreeview_package")
   tree.write(filepath, encoding="utf8")
-"""
+
 #endregion
 
 #region doubletoextended fix

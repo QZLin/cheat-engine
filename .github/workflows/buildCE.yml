@@ -393,7 +393,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: xcopy plugin bin\plugins\ /E/H
         working-directory: ${{ github.workspace }}\Cheat Engine
-      - name: Cache Cheat Engine
+      - name: Load Cheat Engine Cache
         if: ${{ success() || failure() }}
         id: cache-cheat-engine
         uses: actions/cache@v3
