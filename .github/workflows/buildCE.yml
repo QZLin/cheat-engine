@@ -410,6 +410,7 @@ jobs:
         if: ${{ success() || failure() }}
         shell: bash
         run: |
+          shopt -s globstar
           rm -rf ./**/*.pdb
           rm -rf ./**/*.iobj
           rm -rf ./**/*.ipdb
