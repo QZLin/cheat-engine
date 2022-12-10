@@ -364,7 +364,6 @@ jobs:
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration=Release"
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetInvasiveDataCollector\DotNetInterface2
-      #cejvmti.sln idk, uses vs 2008
       - name: Build Tcc 32-32
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration='Output to 32 (Release)' -property:Platform=Win32"
@@ -411,10 +410,10 @@ jobs:
         if: ${{ success() || failure() }}
         shell: bash
         run: |
-          rm -rf *.pdb
-          rm -rf *.iobj
-          rm -rf *.ipdb
-          rm -rf *.dbg
+          rm -rf ./**/*.pdb
+          rm -rf ./**/*.iobj
+          rm -rf ./**/*.ipdb
+          rm -rf ./**/*.dbg
         working-directory: ${{ github.workspace }}\Cheat Engine\bin
       - name: Zip artifact
         if: ${{ success() || failure() }}
