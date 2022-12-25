@@ -22,6 +22,8 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: master
           upstream_sync_repo: cheat-engine/cheat-engine
+        env:
+          UNSHALLOW: true
   start_build:
     needs: sync_latest_from_upstream
     if: needs.sync_latest_from_upstream.outputs.has_new_commits == 'true'
