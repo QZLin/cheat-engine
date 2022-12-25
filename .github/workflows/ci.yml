@@ -12,6 +12,8 @@ jobs:
       has_new_commits: ${{ steps.sync.outputs.has_new_commits }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Sync upstream changes
         id: sync
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
