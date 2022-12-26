@@ -65,14 +65,19 @@ jobs:
         id: cache-vs2013
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}\vs
+          path: |
+            ${{ github.workspace }}\vs
+            !${{ github.workspace }}\vs\packages\MobileTools
+            !${{ github.workspace }}\vs\packages\WindowsPhone81VHD
+            !${{ github.workspace }}\vs\packages\Win81_SDK
+            !${{ github.workspace }}\vs\Standalone Profiler
           key: VS2013
       - name: Download VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
-        run: curl.exe -L -o VS2013_RTM_DskExp_ENU.iso https://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso
+        run: curl.exe -L -o vs2013.5_pro_enu.iso http://download.microsoft.com/download/F/2/E/F2EFF589-F7D7-478E-B3AB-15F412DA7DEB/vs2013.5_pro_enu.iso
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
-        run: 7z x VS2013_RTM_DskExp_ENU.iso -o${{ github.workspace }}\vs
+        run: 7z x vs2013.5_pro_enu.iso -o${{ github.workspace }}\vs
   cache-directx:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -268,11 +273,16 @@ jobs:
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}\vs
+          path: |
+            ${{ github.workspace }}\vs
+            !${{ github.workspace }}\vs\packages\MobileTools
+            !${{ github.workspace }}\vs\packages\WindowsPhone81VHD
+            !${{ github.workspace }}\vs\packages\Win81_SDK
+            !${{ github.workspace }}\vs\Standalone Profiler
           key: VS2013
       - name: Install VS2013
         if: ${{ success() || failure() }}
-        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart'
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\vs_professional.exe -Arguments '/Quiet /NoRestart /AdminFile ${{ github.workspace }}\.github\workflows\config\VS2013AdminDeployment.xml'
       - name: Load DirectX Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
