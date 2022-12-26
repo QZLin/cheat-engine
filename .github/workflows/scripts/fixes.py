@@ -6,8 +6,7 @@ cwd = path.abspath(getcwd())
 
 #region missing virtualtreeview_package
 
-filepath = path.join(path.abspath(getcwd()),
-                     "Cheat Engine/Tutorial/tutorial.lpi")
+filepath = path.join(cwd, "Cheat Engine/Tutorial/tutorial.lpi")
 
 tree = parse(filepath)
 root = tree.getroot()
@@ -117,8 +116,7 @@ with open(filepath, "w") as f:
   f.write(data)
 
 filepath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/MonoDataCollector/MonoDataCollector/PipeServer.cpp")
+  cwd, "Cheat Engine/MonoDataCollector/MonoDataCollector/PipeServer.cpp")
 
 with open(filepath, "r") as f:
   data = f.read()
@@ -138,7 +136,7 @@ with open(filepath, "w") as f:
 #region DotNetDataCollector fix
 """
 filepath = path.join(
-  path.abspath(getcwd()),
+  cwd,
   "Cheat Engine/DotNetDataCollector/DotNetDataCollector/DotNetDataCollector.vcxproj"
 )
 
