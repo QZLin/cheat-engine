@@ -14,12 +14,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
-        shell: bash
         id: get-info
         run: |
-          echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
-          echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
-          echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFile.ps1 `
+            -OutputName lazarus `
+            -File README.md `
+            -Regex 'lazarus-(?<lazarus>[0-9]+\.[0-9]+\.[0-9]+)-fpc-(?<fpc>[0-9]+\.[0-9]+\.[0-9]+)-cross-i386-win32-win64\.exe' `
+            -RegexGroup lazarus
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFile.ps1 `
+            -OutputName fpc `
+            -File README.md `
+            -Regex 'lazarus-(?<lazarus>[0-9]+\.[0-9]+\.[0-9]+)-fpc-(?<fpc>[0-9]+\.[0-9]+\.[0-9]+)-cross-i386-win32-win64\.exe' `
+            -RegexGroup fpc
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFileMultiple.ps1 `
+            -OutputName dependencies `
+            -File '.\Cheat Engine\cheatengine.lpi' `
+            -Regex '(?<=<PackageName Value=").*?(?="\/>)'
       - name: Cache Lazarus
         id: cache-lazarus
         uses: actions/cache@v3
@@ -30,20 +40,22 @@ jobs:
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         shell: cmd
         run: mkdir ${{ github.workspace }}\work
+      - name: Download Lazarus
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: curl.exe -L -o 64bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-win64.exe
+        working-directory: ${{ github.workspace }}\work
       - name: Install Lazarus
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        shell: bash
-        run: node ./.github/workflows/scripts/install.js
-        env:
-          LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
-          FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\64bit.exe -Arguments '/VERYSILENT /DIR=${{ github.workspace }}\work\lazarus'
+        working-directory: ${{ github.workspace }}\work
+      - name: Download 32bit compat
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: curl.exe -L -o 32bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-cross-i386-win32-win64.exe
+        working-directory: ${{ github.workspace }}\work
       - name: Install 32bit compat
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        shell: bash
-        run: node ./.github/workflows/scripts/install32bitCompat.js
-        env:
-          LAZARUS_VERSION: ${{ steps.get-info.outputs.lazarus }}
-          FPC_VERSION: ${{ steps.get-info.outputs.fpc }}
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\32bit.exe -Arguments '/VERYSILENT /DIR=${{ github.workspace }}\work\lazarus'
+        working-directory: ${{ github.workspace }}\work
   cache-vs2013:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -55,16 +67,11 @@ jobs:
         with:
           path: ${{ github.workspace }}\vs
           key: VS2013
-      - name: Set up wget
-        if: steps.cache-vs2013.outputs.cache-hit != 'true'
-        run: choco install wget
       - name: Download VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget https://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso --no-check-certificate
+        run: curl.exe -L -o VS2013_RTM_DskExp_ENU.iso https://download.microsoft.com/download/7/2/E/72E0F986-D247-4289-B9DC-C4FB07374894/VS2013_RTM_DskExp_ENU.iso
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
-        shell: cmd
         run: 7z x VS2013_RTM_DskExp_ENU.iso -o${{ github.workspace }}\vs
   cache-directx:
     runs-on: windows-2022
@@ -77,18 +84,12 @@ jobs:
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
-      - name: Set up wget
-        if: steps.cache-directx.outputs.cache-hit != 'true'
-        run: choco install wget
       - name: Download DirectX
         if: steps.cache-directx.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe --no-check-certificate
+        run: curl.exe -L -o DXSDK_Jun10.exe https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
       - name: Install DirectX
         if: steps.cache-directx.outputs.cache-hit != 'true'
-        shell: bash
-        run: ./InstallDirectX.bat || true
-        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\DXSDK_Jun10.exe -Arguments '/U'
   cache-netdevpack461:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -100,13 +101,9 @@ jobs:
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
-      - name: Set up wget
-        if: steps.cache-netdevpack461.outputs.cache-hit != 'true'
-        run: choco install wget
       - name: Download NETDevPack461
         if: steps.cache-netdevpack461.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe --no-check-certificate
+        run: curl.exe -L -o ndp461-devpack-kb3105179-enu.exe https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe
   cache-netdevpack472:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -118,67 +115,65 @@ jobs:
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
-      - name: Set up wget
-        if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
-        run: choco install wget
       - name: Download NetDevPack472
         if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget https://download.visualstudio.microsoft.com/download/pr/158dce74-251c-4af3-b8cc-4608621341c8/9c1e178a11f55478e2112714a3897c1a/ndp472-devpack-enu.exe --no-check-certificate
+        run: curl.exe -L -o ndp472-devpack-enu.exe https://download.visualstudio.microsoft.com/download/pr/158dce74-251c-4af3-b8cc-4608621341c8/9c1e178a11f55478e2112714a3897c1a/ndp472-devpack-enu.exe
       - name: Install NetDevPack472
         if: steps.cache-netdevpack472.outputs.cache-hit != 'true'
-        shell: bash
-        run: ./InstallNETDevPack472.bat || true
-        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\ndp472-devpack-enu.exe -Arguments '/quiet /norestart'
   cache-ce-orig:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v3
       - name: Get Cheat Engine info
-        shell: bash
         id: get-info
         run: |
-          echo "ce=$(node ./.github/workflows/scripts/getCEVersion.js)" >> $GITHUB_OUTPUT
-          echo "ceurl=$(node ./.github/workflows/scripts/getCEUrl.js)" >> $GITHUB_OUTPUT
+          .\RegexExtractUrl.ps1 `
+            -OutputName ce `
+            -Url https://cheatengine.org/downloads.php `
+            -Regex 'Download Cheat Engine (?<version>[0-9.]+)' `
+            -RegexGroup version
+          .\RegexExtractUrl.ps1 `
+            -OutputName ceurl `
+            -Url https://cheatengine.org/downloads.php `
+            -Regex 'download_link.*?href="(?<url>[^"]+)' `
+            -RegexGroup url
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Cache Cheat Engine
         id: cache-cheat-engine
         uses: actions/cache@v3
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
-      - name: Set up wget
-        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        run: choco install wget
       - name: Download installer
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget ${{ steps.get-info.outputs.ceurl }} --no-check-certificate --output-document=CheatEngine.exe
+        run: curl.exe -L -o CheatEngine.exe ${{ steps.get-info.outputs.ceurl }}
       - name: Download extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget "https://downloads.sourceforge.net/project/innounp/innounp/innounp 0.50/innounp050.rar" --no-check-certificate
+        run: curl.exe -L -o innounp050.rar https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar
       - name: Extract extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: cmd
         run: 7z e innounp050.rar
       - name: Extract installer
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: cmd
-        run: innounp.exe CheatEngine.exe -x -m
+        run: .\innounp.exe CheatEngine.exe -x -m
       - name: Get Extracted installer dl path
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         id: extracted-installer
-        shell: bash
-        run: echo "ceurl=$(py ./.github/workflows/scripts/extractCEUrl.py)" >> $GITHUB_OUTPUT
+        run: |
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFile.ps1 `
+            -OutputName ceurl `
+            -File .\embedded\CompiledCode.bin `
+            -CleanupRegex '[^a-zA-Z0-9.:\/\n\r]' `
+            -Regex '(?<url>https:\/\/[a-zA-Z0-9]+\.cloudfront.net\/f\/CheatEngine\/[0-9]+\/CheatEngine[0-9]*\.exe)' `
+            -RegexGroup url
       - name: Download Extracted Installer
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: cmd
-        run: wget ${{ steps.extracted-installer.outputs.ceurl }} --no-check-certificate --output-document=CheatEngineExtracted.exe
+        run: curl.exe -L -o CheatEngineExtracted.exe ${{ steps.extracted-installer.outputs.ceurl }}
       - name: Install Cheat Engine
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        shell: bash
-        run: ./InstallCE.bat || true
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\CheatEngineExtracted.exe -Arguments '/VERYSILENT /ZBDIST'
   build:
     needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig]
     runs-on: windows-2022
@@ -186,93 +181,88 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
-        shell: bash
         id: get-info
         run: |
-          echo "lazarus=$(node ./.github/workflows/scripts/getLazarusVersion.js)" >> $GITHUB_OUTPUT
-          echo "fpc=$(node ./.github/workflows/scripts/getFpcVersion.js)" >> $GITHUB_OUTPUT
-          echo "dependencies=$(node ./.github/workflows/scripts/getPackages.js)" >> $GITHUB_OUTPUT
-          echo "ce=$(node ./.github/workflows/scripts/getCEVersion.js)" >> $GITHUB_OUTPUT
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFile.ps1 `
+            -OutputName lazarus `
+            -File README.md `
+            -Regex 'lazarus-(?<lazarus>[0-9]+\.[0-9]+\.[0-9]+)-fpc-(?<fpc>[0-9]+\.[0-9]+\.[0-9]+)-cross-i386-win32-win64\.exe' `
+            -RegexGroup lazarus
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFile.ps1 `
+            -OutputName fpc `
+            -File README.md `
+            -Regex 'lazarus-(?<lazarus>[0-9]+\.[0-9]+\.[0-9]+)-fpc-(?<fpc>[0-9]+\.[0-9]+\.[0-9]+)-cross-i386-win32-win64\.exe' `
+            -RegexGroup fpc
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractFileMultiple.ps1 `
+            -OutputName dependencies `
+            -File '.\Cheat Engine\cheatengine.lpi' `
+            -Regex '(?<=<PackageName Value=").*?(?="\/>)'
+          ${{ github.workspace }}\.github\workflows\scripts\RegexExtractUrl.ps1 `
+            -OutputName ce `
+            -Url https://cheatengine.org/downloads.php `
+            -Regex 'Download Cheat Engine (?<version>[0-9.]+)' `
+            -RegexGroup version
       - name: Load Lazarus Cache
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
       - name: Add Lazarus to path
-        shell: bash
         run: |
-          echo "${{github.workspace}}\work\lazarus" >> $GITHUB_PATH
-          echo "${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $GITHUB_PATH
+          echo "${{github.workspace}}\work\lazarus" >> $env:GITHUB_PATH
+          echo "${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $env:GITHUB_PATH
       - name: Apply fixes
-        shell: bash
         run: py ./.github/workflows/scripts/fixes.py
       - name: Build 32-Bit
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 32-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Build 64-Bit
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 64-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Build 64-Bit O4 AVX2
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
       - name: Build 32-Bit speedhack
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="32-bit" --no-write-project "Cheat Engine/speedhack/speedhack.lpi"
       - name: Build 64-Bit speedhack
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="64-bit" --no-write-project "Cheat Engine/speedhack/speedhack.lpi"
       - name: Build 32-Bit luaclient
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 32" --no-write-project "Cheat Engine/luaclient/luaclient.lpi"
       - name: Build 64-Bit luaclient
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 64" --no-write-project "Cheat Engine/luaclient/luaclient.lpi"
       - name: Build 32-Bit vehdebug
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="release 32" --no-write-project "Cheat Engine/VEHDebug/vehdebug.lpi"
       - name: Build 64-Bit vehdebug
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="release 64" --no-write-project "Cheat Engine/VEHDebug/vehdebug.lpi"
       - name: Build 32-Bit allochook
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="32" --no-write-project "Cheat Engine/allochook/allochook.lpi"
       - name: Build 64-Bit allochook
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="64" --no-write-project "Cheat Engine/allochook/allochook.lpi"
       - name: Build ceregreset
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release" --no-write-project "Cheat Engine/ceregreset/ceregreset.lpi"
       - name: Build 32-Bit tutorial
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="release 32-Bit" --no-write-project "Cheat Engine/Tutorial/tutorial.lpi"
       - name: Build 64-Bit tutorial
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="release 64-Bit" --no-write-project "Cheat Engine/Tutorial/tutorial.lpi"
       - name: Build windowsrepair
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release" --no-write-project "Cheat Engine/windowsrepair/windowsrepair.lpi"
       - name: Build 32-Bit winhook
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 32" --no-write-project "Cheat Engine/winhook/winhook.lpi"
       - name: Build 64-Bit winhook
         if: ${{ success() || failure() }}
-        shell: cmd
         run: lazbuild --build-mode="Release 64" --no-write-project "Cheat Engine/winhook/winhook.lpi"
       - name: Load VS2013 Cache
         if: ${{ success() || failure() }}
@@ -282,9 +272,7 @@ jobs:
           key: VS2013
       - name: Install VS2013
         if: ${{ success() || failure() }}
-        shell: cmd
-        run: InstallVS2013.bat
-        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart'
       - name: Load DirectX Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -304,25 +292,8 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
       - name: Install winxp component on windows 2022
         if: ${{ success() || failure() }}
-        shell: pwsh
-        run: |
-          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-          $componentsToAdd = @(
-            "Microsoft.VisualStudio.Component.WinXP"
-          )
-          [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
-          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart')
-          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
-          if ($process.ExitCode -eq 0)
-          {
-              Write-Host "components have been successfully added"
-          }
-          else
-          {
-              Write-Host "components were not installed"
-              exit 1
-          }
+        run: .\InstallWinXpComponent.ps1
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -331,9 +302,7 @@ jobs:
           key: NETDevPack461
       - name: Install NETDevPack461
         if: ${{ success() || failure() }}
-        shell: bash
-        run: ./InstallNETDevPack461.bat || true
-        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\ndp461-devpack-kb3105179-enu.exe -Arguments '/quiet /norestart'
       - name: Build AnyCPU DotNetCompiler
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration=Release"
@@ -418,7 +387,6 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\bin
       - name: Zip artifact
         if: ${{ success() || failure() }}
-        shell: cmd
         run: 7z a -tzip release.zip * -r
         working-directory: "./Cheat Engine/bin"
       - name: Release artifact
