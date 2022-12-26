@@ -2,6 +2,8 @@ import typing
 from xml.etree.ElementTree import Element, SubElement, parse
 from os import getcwd, path
 
+cwd = path.abspath(getcwd())
+
 #region missing virtualtreeview_package
 
 filepath = path.join(path.abspath(getcwd()),
@@ -25,8 +27,7 @@ if (virtualtreeview_package == None):
 #endregion
 
 #region doubletoextended fix
-filepath = path.join(path.abspath(getcwd()),
-                     "Cheat Engine/frmModifyRegistersUnit.pas")
+filepath = path.join(cwd, "Cheat Engine/frmModifyRegistersUnit.pas")
 
 with open(filepath, "r") as f:
   data = f.read()
@@ -80,20 +81,15 @@ def dxN(filepath):
 
 
 dx9ProjPath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/Direct x mess/CED3D9Hook/CED3D9Hook.vcxproj")
+  cwd, "Cheat Engine/Direct x mess/CED3D9Hook/CED3D9Hook.vcxproj")
 dx10ProjPath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/Direct x mess/CED3D10Hook/CED3D10Hook.vcxproj")
+  cwd, "Cheat Engine/Direct x mess/CED3D10Hook/CED3D10Hook.vcxproj")
 dx11ProjPath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/Direct x mess/CED3D11Hook/CED3D11Hook.vcxproj")
+  cwd, "Cheat Engine/Direct x mess/CED3D11Hook/CED3D11Hook.vcxproj")
 dxBaseProjPath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.vcxproj")
+  cwd, "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.vcxproj")
 dxBaseCppPath = path.join(
-  path.abspath(getcwd()),
-  "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.cpp")
+  cwd, "Cheat Engine/Direct x mess/DXHookBase/DXHookBase.cpp")
 
 dxN(dx9ProjPath)
 dxN(dx10ProjPath)
@@ -110,7 +106,7 @@ with open(dxBaseCppPath, "w") as f:
 
 #region MonoDataCollector fix
 filepath = path.join(
-  path.abspath(getcwd()),
+  cwd,
   "Cheat Engine/MonoDataCollector/MonoDataCollector/MonoDataCollector.vcxproj")
 
 with open(filepath, "r") as f:
