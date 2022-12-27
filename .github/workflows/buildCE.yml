@@ -65,7 +65,7 @@ jobs:
         id: cache-vs2013
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}\vs
+          path: ${{ env.VS2013Paths }}
           key: VS2013
       - name: Download VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
@@ -73,6 +73,9 @@ jobs:
       - name: Unzip VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
         run: 7z x VS2013_RTM_DskExp_ENU.iso -o${{ github.workspace }}\vs
+      - name: Install VS2013
+        if: steps.cache-vs2013.outputs.cache-hit != 'true'
+        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart'
   cache-directx:
     runs-on: windows-2022
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -268,11 +271,12 @@ jobs:
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}\vs
+          path: ${{ env.VS2013Paths }}
           key: VS2013
-      - name: Install VS2013
+      - name: Apply VS2013 reg
         if: ${{ success() || failure() }}
-        run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart'
+        run: regedit /s vs2013.reg
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load DirectX Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -395,3 +399,226 @@ jobs:
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"
+
+env:
+  VS2013Paths: |
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv100p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv110p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv120p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv2p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv80p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenv90p.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\msenvp.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\Microsoft.VisualStudio.VSHelp.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\Microsoft.VisualStudio.VSHelp80.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\stdole.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\VSLangProj.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\VSLangProj100.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\VSLangProj110.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\VSLangProj2.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\PublicAssemblies\VSLangProj90.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\TextMgrP.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\VsLogP.dll
+    C:\Program Files (x86)\Common Files\microsoft shared\MSEnv\VSWebLauncher.exe
+    C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A
+    C:\Program Files (x86)\Microsoft SDKs\Windows\v8.1
+    C:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A
+    C:\Program Files (x86)\Microsoft Visual Studio 12.0
+    C:\Program Files (x86)\MSBuild\12.0
+    C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120
+    C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v12.0
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\*.dll
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\RedistList
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client\*.dll
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v3.5\Profile\Client\RedistList
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1
+    C:\Program Files (x86)\Reference Assemblies\Microsoft\MSBuild\v12.0
+    C:\Program Files (x86)\Windows Kits\8.0
+    C:\Program Files (x86)\Windows Kits\8.1
+    C:\Program Files\Common Files\microsoft shared\MSEnv\VSFileHandler_64.dll
+    C:\Program Files\Common Files\microsoft shared\Visual Studio\12.0
+    C:\ProgramData\NuGet\Config\VisualStudio\12.0
+    C:\Windows\assembly\GAC\EnvDTE\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\EnvDTE80\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\EnvDTE90\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\EnvDTE90a\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.mshtml\7.0.3300.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.CommandBars\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Debugger.Interop\8.0.1.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Debugger.InteropA\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Designer.Interfaces\1.0.5000.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.OLE.Interop\7.1.40304.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Shell.Interop.8.0\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Shell.Interop.9.0\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.Shell.Interop\7.1.40304.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.TextManager.Interop.8.0\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.TextManager.Interop.9.0\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.TextManager.Interop\7.1.40304.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.VCCodeModel\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.VCProject\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.VCProjectEngine\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.VSHelp\7.0.3300.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\Microsoft.VisualStudio.VSHelp80\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\VSLangProj\7.0.3300.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\VSLangProj2\7.0.5000.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\VSLangProj80\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC\VslangProj90\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\EnvDTE100\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.MSXML\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Data.Core\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Data.Services\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.Interop.10.0\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.Interop.11.0\11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.Interop.12.0\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.Interop.Internal\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.Runtime\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Debugger.SymbolLocator.Interop\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.DebuggerVisualizers\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Diagnostics.Measurement\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.HostingProcess.Utilities.Sync\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.HostingProcess.Utilities\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.ManagedInterfaces.9.0\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.ManagedInterfaces.WCF\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.ManagedInterfaces\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.ProjectAggregator\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.AgentObject\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.AgentProcessManager\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.Common\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.DataCollectionAgentObject\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.ExecutionCommon\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.Resource\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.TMI\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.UnitTestFramework\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Shell.Interop.10.0\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Shell.Interop.11.0\11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Shell.Interop.12.0\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.TemplateWizardInterface\8.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.TextManager.Interop.10.0\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.TextManager.Interop.11.0\11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.TextManager.Interop.12.0\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.VIL.Host\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.VIL\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.WCFReference.Interop\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\Microsoft.VisualStudio.Zip.9.0\9.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_de_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_es_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_fr_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_it_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_ja_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_ko_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_ru_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_zh-Hans_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\MSBuildTaskHost.resources\12.0.0.0_zh-Hant_b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\vsdebugeng.manimpl\12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\VslangProj100\10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\assembly\GAC_MSIL\VSLangProj110\11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\**\v4.0_12.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\**\v4.0_12.0.0.0_*_b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\CppCodeProvider\v4.0_10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Diagnostics.ServiceModelSink\v4.0_4.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Package.LanguageService.10.0\v4.0_10.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Package.LanguageService.11.0\v4.0_11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\msddslmp\v4.0_11.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Design.VisualStudio.11.0\v4.0_4.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Drawing.VisualStudio.11.0\v4.0_4.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Threading.Tasks.Dataflow\v4.0_4.5.9.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.VisualStudio.11.0\v4.0_4.0.0.0__b77a5c561934e089
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.DynamicData.VisualStudio.11.0\v4.0_4.0.0.0__31bf3856ad364e35
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions.Design.VisualStudio.11.0\v4.0_4.0.0.0__31bf3856ad364e35
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions.VisualStudio.11.0\v4.0_4.0.0.0__31bf3856ad364e35
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.VisualStudio.11.0\v4.0_4.0.0.0__b03f5f7f11d50a3a
+    C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Windows.Forms.VisualStudio.11.0\v4.0_4.0.0.0__b77a5c561934e089
+    C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00001000.dll
+    C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.dll
+    C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.nlp
+    C:\Windows\System32\d2d1debug2.dll
+    C:\Windows\System32\d3d10ref.dll
+    C:\Windows\System32\d3d10sdklayers.dll
+    C:\Windows\System32\d3d11_1sdklayers.dll
+    C:\Windows\System32\d3d11_2sdklayers.dll
+    C:\Windows\System32\d3d11ref.dll
+    C:\Windows\System32\d3d11sdklayers.dll
+    C:\Windows\System32\d3dref9.dll
+    C:\Windows\System32\dxcapturereplay.dll
+    C:\Windows\System32\dxcpl.exe
+    C:\Windows\System32\dxgidebug.dll
+    C:\Windows\System32\dxtoolsmonitor.dll
+    C:\Windows\System32\mfc120.dll
+    C:\Windows\System32\mfc120chs.dll
+    C:\Windows\System32\mfc120cht.dll
+    C:\Windows\System32\mfc120d.dll
+    C:\Windows\System32\mfc120deu.dll
+    C:\Windows\System32\mfc120enu.dll
+    C:\Windows\System32\mfc120esn.dll
+    C:\Windows\System32\mfc120fra.dll
+    C:\Windows\System32\mfc120ita.dll
+    C:\Windows\System32\mfc120jpn.dll
+    C:\Windows\System32\mfc120kor.dll
+    C:\Windows\System32\mfc120rus.dll
+    C:\Windows\System32\mfc120u.dll
+    C:\Windows\System32\mfc120ud.dll
+    C:\Windows\System32\mfcm120.dll
+    C:\Windows\System32\mfcm120d.dll
+    C:\Windows\System32\mfcm120u.dll
+    C:\Windows\System32\mfcm120ud.dll
+    C:\Windows\System32\msvcp100.dll
+    C:\Windows\System32\msvcp120.dll
+    C:\Windows\System32\msvcp120d.dll
+    C:\Windows\System32\msvcr100.dll
+    C:\Windows\System32\msvcr120.dll
+    C:\Windows\System32\msvcr120d.dll
+    C:\Windows\System32\vcamp120.dll
+    C:\Windows\System32\vcamp120d.dll
+    C:\Windows\System32\vccorlib120.dll
+    C:\Windows\System32\vccorlib120d.dll
+    C:\Windows\System32\vcomp120.dll
+    C:\Windows\System32\vcomp120d.dll
+    C:\Windows\System32\VSD3DRefDebug.dll
+    C:\Windows\System32\vsd3dwarpdebug.dll
+    C:\Windows\SysWOW64\d2d1debug2.dll
+    C:\Windows\SysWOW64\d3d10ref.dll
+    C:\Windows\SysWOW64\d3d10sdklayers.dll
+    C:\Windows\SysWOW64\d3d11_1sdklayers.dll
+    C:\Windows\SysWOW64\d3d11_2sdklayers.dll
+    C:\Windows\SysWOW64\d3d11ref.dll
+    C:\Windows\SysWOW64\d3d11sdklayers.dll
+    C:\Windows\SysWOW64\d3dref9.dll
+    C:\Windows\SysWOW64\dxcapturereplay.dll
+    C:\Windows\SysWOW64\dxcpl.exe
+    C:\Windows\SysWOW64\dxgidebug.dll
+    C:\Windows\SysWOW64\dxtoolsmonitor.dll
+    C:\Windows\SysWOW64\mfc120.dll
+    C:\Windows\SysWOW64\mfc120chs.dll
+    C:\Windows\SysWOW64\mfc120cht.dll
+    C:\Windows\SysWOW64\mfc120d.dll
+    C:\Windows\SysWOW64\mfc120deu.dll
+    C:\Windows\SysWOW64\mfc120enu.dll
+    C:\Windows\SysWOW64\mfc120esn.dll
+    C:\Windows\SysWOW64\mfc120fra.dll
+    C:\Windows\SysWOW64\mfc120ita.dll
+    C:\Windows\SysWOW64\mfc120jpn.dll
+    C:\Windows\SysWOW64\mfc120kor.dll
+    C:\Windows\SysWOW64\mfc120rus.dll
+    C:\Windows\SysWOW64\mfc120u.dll
+    C:\Windows\SysWOW64\mfc120ud.dll
+    C:\Windows\SysWOW64\mfcm120.dll
+    C:\Windows\SysWOW64\mfcm120d.dll
+    C:\Windows\SysWOW64\mfcm120u.dll
+    C:\Windows\SysWOW64\mfcm120ud.dll
+    C:\Windows\SysWOW64\msvcp100.dll
+    C:\Windows\SysWOW64\msvcp120.dll
+    C:\Windows\SysWOW64\msvcp120d.dll
+    C:\Windows\SysWOW64\msvcr100.dll
+    C:\Windows\SysWOW64\msvcr120.dll
+    C:\Windows\SysWOW64\msvcr120d.dll
+    C:\Windows\SysWOW64\vcamp120.dll
+    C:\Windows\SysWOW64\vcamp120d.dll
+    C:\Windows\SysWOW64\vccorlib120.dll
+    C:\Windows\SysWOW64\vccorlib120d.dll
+    C:\Windows\SysWOW64\vcomp120.dll
+    C:\Windows\SysWOW64\vcomp120d.dll
+    C:\Windows\SysWOW64\VSD3DRefDebug.dll
+    C:\Windows\SysWOW64\vsd3dwarpdebug.dll
