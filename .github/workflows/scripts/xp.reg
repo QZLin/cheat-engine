@@ -15,3 +15,15 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v7.1A\XPSupport]
 "InstallationFolder"="C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.1A\\"
 "ProductVersion"="7.1.51106"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\DevDiv\Win\Servicing\11.0]
+"SP"=dword:00000000
+"SPIndex"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\DevDiv\Win\Servicing\11.0\XPSupport]
+"Install"=dword:00000001
+"InstallerType"="MSI"
+"SP"=dword:00000000
+"SPIndex"=dword:00000000
+"SPName"="RTM"
+"Version"="11.0.51106"

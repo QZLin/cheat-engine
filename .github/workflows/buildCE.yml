@@ -561,7 +561,6 @@ jobs:
             C:\Windows\Microsoft.NET\assembly\**\v4.0_12.0.0.0__b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\**\v4.0_12.0.0.0_*_b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\CppCodeProvider\v4.0_10.0.0.0__b03f5f7f11d50a3a
-            C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Diagnostics.ServiceModelSink\v4.0_4.0.0.0__b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Package.LanguageService.10.0\v4.0_10.0.0.0__b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Package.LanguageService.11.0\v4.0_11.0.0.0__b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\msddslmp\v4.0_11.0.0.0__b03f5f7f11d50a3a
@@ -574,65 +573,21 @@ jobs:
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.Extensions.VisualStudio.11.0\v4.0_4.0.0.0__31bf3856ad364e35
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Web.VisualStudio.11.0\v4.0_4.0.0.0__b03f5f7f11d50a3a
             C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Windows.Forms.VisualStudio.11.0\v4.0_4.0.0.0__b77a5c561934e089
-            C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00001000.dll
-            C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.dll
-            C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.nlp
             C:\Windows\System32\d2d1debug2.dll
-            C:\Windows\System32\d3d10ref.dll
-            C:\Windows\System32\d3d10sdklayers.dll
             C:\Windows\System32\d3d11_1sdklayers.dll
             C:\Windows\System32\d3d11_2sdklayers.dll
             C:\Windows\System32\d3d11ref.dll
             C:\Windows\System32\d3d11sdklayers.dll
-            C:\Windows\System32\d3dref9.dll
-            C:\Windows\System32\dxcapturereplay.dll
-            C:\Windows\System32\dxcpl.exe
-            C:\Windows\System32\dxgidebug.dll
-            C:\Windows\System32\dxtoolsmonitor.dll
-            C:\Windows\System32\mfc120.dll
-            C:\Windows\System32\mfc120chs.dll
-            C:\Windows\System32\mfc120cht.dll
             C:\Windows\System32\mfc120d.dll
-            C:\Windows\System32\mfc120deu.dll
-            C:\Windows\System32\mfc120enu.dll
-            C:\Windows\System32\mfc120esn.dll
-            C:\Windows\System32\mfc120fra.dll
-            C:\Windows\System32\mfc120ita.dll
-            C:\Windows\System32\mfc120jpn.dll
-            C:\Windows\System32\mfc120kor.dll
-            C:\Windows\System32\mfc120rus.dll
-            C:\Windows\System32\mfc120u.dll
             C:\Windows\System32\mfc120ud.dll
-            C:\Windows\System32\mfcm120.dll
             C:\Windows\System32\mfcm120d.dll
-            C:\Windows\System32\mfcm120u.dll
             C:\Windows\System32\mfcm120ud.dll
-            C:\Windows\System32\msvcp100.dll
-            C:\Windows\System32\msvcp120.dll
             C:\Windows\System32\msvcp120d.dll
-            C:\Windows\System32\msvcr100.dll
-            C:\Windows\System32\msvcr120.dll
             C:\Windows\System32\msvcr120d.dll
-            C:\Windows\System32\vcamp120.dll
             C:\Windows\System32\vcamp120d.dll
-            C:\Windows\System32\vccorlib120.dll
             C:\Windows\System32\vccorlib120d.dll
-            C:\Windows\System32\vcomp120.dll
             C:\Windows\System32\vcomp120d.dll
             C:\Windows\System32\VSD3DRefDebug.dll
-            C:\Windows\System32\vsd3dwarpdebug.dll
-            C:\Windows\SysWOW64\d2d1debug2.dll
-            C:\Windows\SysWOW64\d3d10ref.dll
-            C:\Windows\SysWOW64\d3d10sdklayers.dll
-            C:\Windows\SysWOW64\d3d11_1sdklayers.dll
-            C:\Windows\SysWOW64\d3d11_2sdklayers.dll
-            C:\Windows\SysWOW64\d3d11ref.dll
-            C:\Windows\SysWOW64\d3d11sdklayers.dll
-            C:\Windows\SysWOW64\d3dref9.dll
-            C:\Windows\SysWOW64\dxcapturereplay.dll
-            C:\Windows\SysWOW64\dxcpl.exe
-            C:\Windows\SysWOW64\dxgidebug.dll
-            C:\Windows\SysWOW64\dxtoolsmonitor.dll
             C:\Windows\SysWOW64\mfc120.dll
             C:\Windows\SysWOW64\mfc120chs.dll
             C:\Windows\SysWOW64\mfc120cht.dll
@@ -651,20 +606,65 @@ jobs:
             C:\Windows\SysWOW64\mfcm120d.dll
             C:\Windows\SysWOW64\mfcm120u.dll
             C:\Windows\SysWOW64\mfcm120ud.dll
-            C:\Windows\SysWOW64\msvcp100.dll
-            C:\Windows\SysWOW64\msvcp120.dll
             C:\Windows\SysWOW64\msvcp120d.dll
-            C:\Windows\SysWOW64\msvcr100.dll
-            C:\Windows\SysWOW64\msvcr120.dll
             C:\Windows\SysWOW64\msvcr120d.dll
             C:\Windows\SysWOW64\vcamp120.dll
             C:\Windows\SysWOW64\vcamp120d.dll
-            C:\Windows\SysWOW64\vccorlib120.dll
             C:\Windows\SysWOW64\vccorlib120d.dll
             C:\Windows\SysWOW64\vcomp120.dll
             C:\Windows\SysWOW64\vcomp120d.dll
-            C:\Windows\SysWOW64\VSD3DRefDebug.dll
-            C:\Windows\SysWOW64\vsd3dwarpdebug.dll
+          # C:\Windows\Microsoft.NET\assembly\GAC_MSIL\Microsoft.VisualStudio.Diagnostics.ServiceModelSink\v4.0_4.0.0.0__b03f5f7f11d50a3a
+          # C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00001000.dll
+          # C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.dll
+          # C:\Windows\Microsoft.NET\Framework64\v4.0.30319\sort00060101.nlp
+          # C:\Windows\System32\d3d10ref.dll
+          # C:\Windows\System32\d3d10sdklayers.dll
+          # C:\Windows\System32\d3dref9.dll
+          # C:\Windows\System32\dxcapturereplay.dll
+          # C:\Windows\System32\dxcpl.exe
+          # C:\Windows\System32\dxgidebug.dll
+          # C:\Windows\System32\dxtoolsmonitor.dll
+          # C:\Windows\System32\mfc120.dll
+          # C:\Windows\System32\mfc120chs.dll
+          # C:\Windows\System32\mfc120cht.dll
+          # C:\Windows\System32\mfc120deu.dll
+          # C:\Windows\System32\mfc120enu.dll
+          # C:\Windows\System32\mfc120esn.dll
+          # C:\Windows\System32\mfc120fra.dll
+          # C:\Windows\System32\mfc120ita.dll
+          # C:\Windows\System32\mfc120jpn.dll
+          # C:\Windows\System32\mfc120kor.dll
+          # C:\Windows\System32\mfc120rus.dll
+          # C:\Windows\System32\mfc120u.dll
+          # C:\Windows\System32\mfcm120.dll
+          # C:\Windows\System32\mfcm120u.dll
+          # C:\Windows\System32\msvcp100.dll
+          # C:\Windows\System32\msvcp120.dll
+          # C:\Windows\System32\msvcr100.dll
+          # C:\Windows\System32\msvcr120.dll
+          # C:\Windows\System32\vcamp120.dll
+          # C:\Windows\System32\vccorlib120.dll
+          # C:\Windows\System32\vcomp120.dll
+          # C:\Windows\System32\vsd3dwarpdebug.dll
+          # C:\Windows\SysWOW64\d2d1debug2.dll
+          # C:\Windows\SysWOW64\d3d10ref.dll
+          # C:\Windows\SysWOW64\d3d10sdklayers.dll
+          # C:\Windows\SysWOW64\d3d11_1sdklayers.dll
+          # C:\Windows\SysWOW64\d3d11_2sdklayers.dll
+          # C:\Windows\SysWOW64\d3d11ref.dll
+          # C:\Windows\SysWOW64\d3d11sdklayers.dll
+          # C:\Windows\SysWOW64\d3dref9.dll
+          # C:\Windows\SysWOW64\dxcapturereplay.dll
+          # C:\Windows\SysWOW64\dxcpl.exe
+          # C:\Windows\SysWOW64\dxgidebug.dll
+          # C:\Windows\SysWOW64\dxtoolsmonitor.dll
+          # C:\Windows\SysWOW64\msvcp100.dll
+          # C:\Windows\SysWOW64\msvcp120.dll
+          # C:\Windows\SysWOW64\msvcr100.dll
+          # C:\Windows\SysWOW64\msvcr120.dll
+          # C:\Windows\SysWOW64\vccorlib120.dll
+          # C:\Windows\SysWOW64\VSD3DRefDebug.dll
+          # C:\Windows\SysWOW64\vsd3dwarpdebug.dll
       - uses: actions/github-script@v6
         id: get-xp-paths
         with:
