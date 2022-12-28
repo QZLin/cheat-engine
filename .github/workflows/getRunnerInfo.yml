@@ -14,24 +14,26 @@ jobs:
     steps:
       - name: Get VS2013 existing files
         id: vs2013-existing-files
-        uses: zyactions/glob@v2
+        uses: tj-actions/glob@v16
         with:
-          pattern: ${{ needs.get-paths.outputs.vs2013 }}
+          files: ${{ needs.get-paths.outputs.vs2013 }}
+          separator: "\n"
       - name: Write VS2013 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: vs2013.txt
-          contents: ${{ steps.vs2013-existing-files.outputs.matches }}
+          contents: ${{ steps.vs2013-existing-files.outputs.paths }}
       - name: Get XP existing files
         id: xp-existing-files
-        uses: zyactions/glob@v2
+        uses: tj-actions/glob@v16
         with:
-          pattern: ${{ needs.get-paths.outputs.xp }}
+          files: ${{ needs.get-paths.outputs.xp }}
+          separator: "\n"
       - name: Write VS2017 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: xp.txt
-          contents: ${{ steps.xp-existing-files.outputs.matches }}
+          contents: ${{ steps.xp-existing-files.outputs.paths }}
       - uses: actions/upload-artifact@v3
         with:
           name: relevant-info
