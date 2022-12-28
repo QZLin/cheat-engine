@@ -23,7 +23,7 @@ jobs:
             for await (const file of globber.globGenerator()) {
               paths.push(file.toString());
             }
-            return paths;
+            return paths.join("\n");
           result-encoding: string
         env:
           VS2013Paths: ${{ needs.get-paths.outputs.vs2013 }}
@@ -44,7 +44,7 @@ jobs:
             for await (const file of globber.globGenerator()) {
               paths.push(file.toString());
             }
-            return paths;
+            return paths.join("\n");
           result-encoding: string
         env:
           XPPaths: ${{ needs.get-paths.outputs.xp }}
