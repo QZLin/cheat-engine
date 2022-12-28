@@ -19,7 +19,7 @@ on:
 jobs:
   cache-lazarus:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
@@ -67,7 +67,7 @@ jobs:
         working-directory: ${{ github.workspace }}\work
   cache-xp:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
@@ -83,7 +83,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
   cache-vs2013:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
@@ -104,7 +104,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart /NoWeb'
   cache-directx:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache DirectX
@@ -121,7 +121,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\DXSDK_Jun10.exe -Arguments '/U'
   cache-netdevpack461:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache NETDevPack461
@@ -135,7 +135,7 @@ jobs:
         run: curl.exe -L -o ndp461-devpack-kb3105179-enu.exe https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe
   cache-netdevpack472:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache NetDevPack472
@@ -152,7 +152,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\ndp472-devpack-enu.exe -Arguments '/quiet /norestart'
   cache-ce-orig:
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Cheat Engine info
@@ -206,7 +206,7 @@ jobs:
   build:
     needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, get-paths]
     runs-on: windows-2022
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
