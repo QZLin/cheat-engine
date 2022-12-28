@@ -54,10 +54,10 @@ jobs:
         with:
           path: xp.txt
           contents: ${{ steps.xp-existing-files.outputs.result }}
+      - name: Install HoboCopy
+        run: choco install hobocopy
       - name: Copy Registry
-        run: |
-          xcopy C:\Windows\System32\config\SYSTEM SYSTEM /H/I
-          xcopy C:\Windows\System32\config\SOFTWARE SOFTWARE /H/I
+        run: hobocopy C:\Windows\System32\config\SYSTEM ${{ github.workspace }} SYSTEM SOFTWARE
       - uses: actions/upload-artifact@v3
         with:
           name: relevant-info
