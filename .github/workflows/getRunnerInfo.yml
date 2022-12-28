@@ -57,7 +57,9 @@ jobs:
       - name: Install HoboCopy
         run: choco install hobocopy
       - name: Copy Registry
-        run: hobocopy C:\Windows\System32\config\SYSTEM ${{ github.workspace }} SYSTEM SOFTWARE
+        run: |
+          hobocopy C:\Windows\System32\config ${{ github.workspace }} SYSTEM SOFTWARE
+          hobocopy %USERPROFILE% ${{ github.workspace }} NTUSER.DAT
       - uses: actions/upload-artifact@v3
         with:
           name: relevant-info
@@ -66,4 +68,4 @@ jobs:
             xp.txt
             SYSTEM
             SOFTWARE
-            ~\NTUSER.DAT
+            NTUSER.DAT
