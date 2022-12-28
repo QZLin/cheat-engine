@@ -59,7 +59,7 @@ jobs:
       - name: Copy Registry
         run: |
           hobocopy C:\Windows\System32\config ${{ github.workspace }} SYSTEM SOFTWARE
-          hobocopy ~\ ${{ github.workspace }} NTUSER.DAT
+          hobocopy C:\Users\runneradmin ${{ github.workspace }} NTUSER.DAT
       - uses: actions/upload-artifact@v3
         with:
           name: relevant-info
