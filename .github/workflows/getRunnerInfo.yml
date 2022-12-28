@@ -28,6 +28,7 @@ jobs:
         env:
           VS2013Paths: ${{ needs.get-paths.outputs.vs2013 }}
       - name: Write VS2013 existing files
+        if: steps.vs2013-existing-files.outputs.result != 0
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: vs2013.txt
@@ -47,7 +48,8 @@ jobs:
           result-encoding: string
         env:
           XPPaths: ${{ needs.get-paths.outputs.xp }}
-      - name: Write VS2017 existing files
+      - name: Write XP existing files
+        if: steps.xp-existing-files.outputs.result != 0
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: xp.txt
