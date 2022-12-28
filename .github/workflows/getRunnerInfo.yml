@@ -20,7 +20,7 @@ jobs:
             const paths = [];
             const input = process.env.VS2013Paths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
             const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
-            for await (const file of globber.globGenerator) {
+            for await (const file of globber.globGenerator()) {
               paths.push(file.toString());
             }
             return paths;
@@ -40,7 +40,7 @@ jobs:
             const paths = [];
             const input = process.env.XPPaths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
             const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
-            for await (const file of globber.globGenerator) {
+            for await (const file of globber.globGenerator()) {
               paths.push(file.toString());
             }
             return paths;
