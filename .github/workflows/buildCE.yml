@@ -3,6 +3,15 @@ name: Build Cheat Engine
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      info-only:
+        required: false
+        type: boolean
+    outputs:
+      vs2013:
+        value: ${{ jobs.get-paths.outputs.vs2013 }}
+      xp:
+        value: ${{ jobs.get-paths.outputs.xp }}
   push:
     branches:
       - master
@@ -10,7 +19,7 @@ on:
 jobs:
   cache-lazarus:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
@@ -56,17 +65,33 @@ jobs:
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\32bit.exe -Arguments '/VERYSILENT /DIR=${{ github.workspace }}\work\lazarus'
         working-directory: ${{ github.workspace }}\work
+  cache-xp:
+    runs-on: windows-2022
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    needs: get-paths
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache XP
+        id: cache-xp
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.get-paths.outputs.xp }}
+          key: XP
+      - name: Install winxp component on windows 2022
+        if: steps.cache-xp.outputs.cache-hit != 'true'
+        run: .\InstallWinXpComponent.ps1
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
   cache-vs2013:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    needs: get-vs2013-paths
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
+    needs: get-paths
     steps:
       - uses: actions/checkout@v3
       - name: Cache VS2013
         id: cache-vs2013
         uses: actions/cache@v3
         with:
-          path: ${{ needs.get-vs2013-paths.outputs.result }}
+          path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
       - name: Download VS2013
         if: steps.cache-vs2013.outputs.cache-hit != 'true'
@@ -79,7 +104,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\vs\wdexpress_full.exe -Arguments '/Quiet /NoRestart /NoWeb'
   cache-directx:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache DirectX
@@ -96,7 +121,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\DXSDK_Jun10.exe -Arguments '/U'
   cache-netdevpack461:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache NETDevPack461
@@ -110,7 +135,7 @@ jobs:
         run: curl.exe -L -o ndp461-devpack-kb3105179-enu.exe https://download.visualstudio.microsoft.com/download/pr/33a48e6c-c0d1-4321-946b-042b92bad691/a9a88bd451286ab9ea015ecc2208d725/ndp461-devpack-kb3105179-enu.exe
   cache-netdevpack472:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache NetDevPack472
@@ -127,7 +152,7 @@ jobs:
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\ndp472-devpack-enu.exe -Arguments '/quiet /norestart'
   cache-ce-orig:
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Cheat Engine info
@@ -179,9 +204,9 @@ jobs:
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\CheatEngineExtracted.exe -Arguments '/VERYSILENT /ZBDIST'
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, get-vs2013-paths]
+    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, get-paths]
     runs-on: windows-2022
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') || inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
       - name: Get Lazarus info
@@ -272,7 +297,7 @@ jobs:
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
         with:
-          path: ${{ needs.get-vs2013-paths.outputs.result }}
+          path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
       - name: Apply VS2013 reg
         if: ${{ success() || failure() }}
@@ -295,10 +320,15 @@ jobs:
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration=Release -property:Platform=x64"
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
-      # TODO: make this work similar to vs2013 caching
-      - name: Install winxp component on windows 2022
+      - name: Load XP Cache
         if: ${{ success() || failure() }}
-        run: .\InstallWinXpComponent.ps1
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.get-paths.outputs.xp }}
+          key: XP
+      - name: Apply XP reg
+        if: ${{ success() || failure() }}
+        run: regedit /s xp.reg
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
@@ -401,14 +431,15 @@ jobs:
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"
-  get-vs2013-paths:
+  get-paths:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     outputs:
-      result: ${{ steps.get-paths.outputs.result }}
+      vs2013: ${{ steps.get-vs2013-paths.outputs.result }}
+      xp: ${{ steps.get-xp-paths.outputs.result }}
     steps:
       - uses: actions/github-script@v6
-        id: get-paths
+        id: get-vs2013-paths
         with:
           script: return process.env.VS2013Paths
           result-encoding: string
@@ -634,3 +665,13 @@ jobs:
             C:\Windows\SysWOW64\vcomp120d.dll
             C:\Windows\SysWOW64\VSD3DRefDebug.dll
             C:\Windows\SysWOW64\vsd3dwarpdebug.dll
+      - uses: actions/github-script@v6
+        id: get-xp-paths
+        with:
+          script: return process.env.XPPaths
+          result-encoding: string
+        env:
+          XPPaths: |
+            C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A
+            C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Remote Debugger\*\vbdebug.dll
+            C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v150\Platforms\*\PlatformToolsets\v141_xp

@@ -1,0 +1,43 @@
+name: Get Runner Info
+
+on:
+  workflow_dispatch:
+
+jobs:
+  get-info:
+    runs-on: windows-2022
+    steps:
+      - name: Get Paths
+        id: get-paths
+        uses: ./.github/workflows/buildCE.yml
+        with:
+          info-only: true
+      - name: Get VS2013 existing files
+        id: vs2013-existing-files
+        uses: zyactions/glob@v2
+        with:
+          pattern: ${{ steps.get-paths.outputs.vs2013 }}
+      - name: Write VS2013 existing files
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: vs2013.txt
+          contents: ${{ steps.vs2013-existing-files.outputs.matches }}
+      - name: Get XP existing files
+        id: xp-existing-files
+        uses: zyactions/glob@v2
+        with:
+          pattern: ${{ steps.get-paths.outputs.xp }}
+      - name: Write VS2017 existing files
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: xp.txt
+          contents: ${{ steps.xp-existing-files.outputs.matches }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: relevant-info
+          path: |
+            vs2013.txt
+            xp.txt
+            C:\Windows\System32\config\SYSTEM
+            C:\Windows\System32\config\SOFTWARE
+            ~\NTUSER.DAT
