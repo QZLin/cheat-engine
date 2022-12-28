@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  get-paths:
+    uses: ./.github/workflows/buildCE.yml
+    with:
+      info-only: true
   get-info:
     runs-on: windows-2022
+    needs: get-paths
     steps:
-      - name: Get Paths
-        id: get-paths
-        uses: ./.github/workflows/buildCE.yml
-        with:
-          info-only: true
       - name: Get VS2013 existing files
         id: vs2013-existing-files
         uses: zyactions/glob@v2
         with:
-          pattern: ${{ steps.get-paths.outputs.vs2013 }}
+          pattern: ${{ needs.get-paths.outputs.vs2013 }}
       - name: Write VS2013 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
@@ -26,7 +26,7 @@ jobs:
         id: xp-existing-files
         uses: zyactions/glob@v2
         with:
-          pattern: ${{ steps.get-paths.outputs.xp }}
+          pattern: ${{ needs.get-paths.outputs.xp }}
       - name: Write VS2017 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
