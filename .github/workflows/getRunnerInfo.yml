@@ -14,26 +14,44 @@ jobs:
     steps:
       - name: Get VS2013 existing files
         id: vs2013-existing-files
-        uses: tj-actions/glob@v16
+        uses: actions/github-script@v6
         with:
-          files: ${{ needs.get-paths.outputs.vs2013 }}
-          separator: "\n"
+          script: |
+            const paths = [];
+            const input = process.env.VS2013Paths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
+            const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
+            for await (const file of globber.globGenerator) {
+              paths.push(file.toString());
+            }
+            return paths;
+          result-encoding: string
+        env:
+          VS2013Paths: ${{ needs.get-paths.outputs.vs2013 }}
       - name: Write VS2013 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: vs2013.txt
-          contents: ${{ steps.vs2013-existing-files.outputs.paths }}
+          contents: ${{ steps.vs2013-existing-files.outputs.result }}
       - name: Get XP existing files
         id: xp-existing-files
-        uses: tj-actions/glob@v16
+        uses: actions/github-script@v6
         with:
-          files: ${{ needs.get-paths.outputs.xp }}
-          separator: "\n"
+          script: |
+            const paths = [];
+            const input = process.env.XPPaths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
+            const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
+            for await (const file of globber.globGenerator) {
+              paths.push(file.toString());
+            }
+            return paths;
+          result-encoding: string
+        env:
+          XPPaths: ${{ needs.get-paths.outputs.xp }}
       - name: Write VS2017 existing files
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: xp.txt
-          contents: ${{ steps.xp-existing-files.outputs.paths }}
+          contents: ${{ steps.xp-existing-files.outputs.result }}
       - uses: actions/upload-artifact@v3
         with:
           name: relevant-info
