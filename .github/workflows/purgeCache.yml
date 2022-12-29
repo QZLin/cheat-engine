@@ -7,6 +7,9 @@ on:
         default: 0
 
 jobs:
-  - uses: MyAlbum/purge-cache@v1
-    with:
-      max-age: ${{ inputs.max-age }}
+  purge-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MyAlbum/purge-cache@v1
+        with:
+          max-age: ${{ inputs.max-age }}
