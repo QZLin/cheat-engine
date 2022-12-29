@@ -1,0 +1,12 @@
+name: Purge Cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      max-age:
+        default: 0
+
+jobs:
+  - uses: MyAlbum/purge-cache@v1
+    with:
+      max-age: ${{ inputs.max-age }}
