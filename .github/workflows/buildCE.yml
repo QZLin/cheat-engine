@@ -330,11 +330,6 @@ jobs:
         if: ${{ success() || failure() }}
         run: regedit /s xp.reg
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
-        #should be temporary, don't have time to fix rn
-      - name: Install winxp component on windows 2022
-        if: ${{ success() || failure() }}
-        run: .\InstallWinXpComponent.ps1
-        working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -678,5 +673,4 @@ jobs:
         env:
           XPPaths: |
             C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A
-            C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Remote Debugger\*\vbdebug.dll
-            C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v150\Platforms\*\PlatformToolsets\v141_xp
+            C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v150\Platforms\**\PlatformToolsets\v141_xp
