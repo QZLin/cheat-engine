@@ -51,7 +51,7 @@ jobs:
         run: mkdir ${{ github.workspace }}\work
       - name: Download Lazarus
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        run: curl.exe -L -o 64bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-win64.exe
+        run: curl.exe -L --retry 15 --retry-all-errors --retry-delay 5 -o 64bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-win64.exe
         working-directory: ${{ github.workspace }}\work
       - name: Install Lazarus
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
@@ -59,7 +59,7 @@ jobs:
         working-directory: ${{ github.workspace }}\work
       - name: Download 32bit compat
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        run: curl.exe -L -o 32bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-cross-i386-win32-win64.exe
+        run: curl.exe -L --retry 15 --retry-all-errors --retry-delay 5 -o 32bit.exe https://downloads.sourceforge.net/project/lazarus/Lazarus%20Windows%2064%20bits/Lazarus%20${{ steps.get-info.outputs.lazarus }}/lazarus-${{ steps.get-info.outputs.lazarus }}-fpc-${{ steps.get-info.outputs.fpc }}-cross-i386-win32-win64.exe
         working-directory: ${{ github.workspace }}\work
       - name: Install 32bit compat
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
@@ -180,7 +180,7 @@ jobs:
         run: curl.exe -L -o CheatEngine.exe ${{ steps.get-info.outputs.ceurl }}
       - name: Download extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        run: curl.exe -L -o innounp050.rar https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar
+        run: curl.exe -L --retry 15 --retry-all-errors --retry-delay 5 -o innounp050.rar https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar
       - name: Extract extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         run: 7z e innounp050.rar
