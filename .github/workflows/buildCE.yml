@@ -23,10 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -77,10 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Cache XP
         id: cache-xp
         uses: actions/cache@v3
@@ -98,10 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Cache VS2013
         id: cache-vs2013
         uses: actions/cache@v3
@@ -123,10 +114,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Cache DirectX
         id: cache-directx
         uses: actions/cache@v3
@@ -145,10 +133,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Cache NETDevPack461
         id: cache-netdevpack461
         uses: actions/cache@v3
@@ -164,10 +149,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Cache NetDevPack472
         id: cache-netdevpack472
         uses: actions/cache@v3
@@ -186,10 +168,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Get Cheat Engine info
         id: get-info
         run: |
@@ -245,10 +224,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        shell: cmd
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -439,7 +415,6 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine
       - name: Load Cheat Engine Cache
         if: ${{ success() || failure() }}
-        id: cache-cheat-engine
         uses: actions/cache@v3
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
@@ -471,6 +446,20 @@ jobs:
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"
+      - name: Get build info
+        id: get-build-info
+        run: py ./.github/workflows/scripts/version.py
+      - name: Update release
+        uses: ncipollo/release-action@v1
+        with:
+          prerelease: true
+          allowUpdates: true
+          removeArtifacts: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: "Cheat Engine/bin/release.zip"
+          body: '<time datetime="${{ steps.get-build-info.outputs.isotime }}">${{ steps.get-build-info.outputs.time }}</time>'
+          tag: ${{ steps.get-build-info.outputs.major }}.${{ steps.get-build-info.outputs.minor }}.${{ steps.get-build-info.outputs.revision }}-${{ steps.get-build-info.outputs.build }}
+          name: "${{ steps.get-build-info.outputs.major }}.${{ steps.get-build-info.outputs.minor }}.${{ steps.get-build-info.outputs.revision }} (Build: ${{ steps.get-build-info.outputs.build }})"
   get-paths:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}

@@ -1,4 +1,4 @@
-import typing
+from typing import cast
 from xml.etree.ElementTree import Element, SubElement, parse
 from os import getcwd, path
 
@@ -10,13 +10,12 @@ filepath = path.join(cwd, "Cheat Engine/Tutorial/tutorial.lpi")
 
 tree = parse(filepath)
 root = tree.getroot()
-requiredPackages = typing.cast(Element,
-                               root.find("ProjectOptions/RequiredPackages"))
+requiredPackages = cast(Element, root.find("ProjectOptions/RequiredPackages"))
 virtualtreeview_package = requiredPackages.find(
   '*/PackageName[@Value="laz.virtualtreeview_package"]')
 
 if (virtualtreeview_package == None):
-  number = str(int(typing.cast(str, requiredPackages.get("Count"))) + 1)
+  number = str(int(cast(str, requiredPackages.get("Count"))) + 1)
   requiredPackages.set("Count", number)
   packageItem = SubElement(requiredPackages, "Item" + number)
   package = SubElement(packageItem, "PackageName")
