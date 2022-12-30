@@ -22,6 +22,9 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -41,7 +44,7 @@ jobs:
             -Regex '(?<=<PackageName Value=").*?(?="\/>)'
       - name: Cache Lazarus
         id: cache-lazarus
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
@@ -71,9 +74,12 @@ jobs:
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache XP
         id: cache-xp
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: ${{ needs.get-paths.outputs.xp }}
           key: XP
@@ -87,9 +93,12 @@ jobs:
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache VS2013
         id: cache-vs2013
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
@@ -107,9 +116,12 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache DirectX
         id: cache-directx
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
@@ -124,9 +136,12 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache NETDevPack461
         id: cache-netdevpack461
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
@@ -138,9 +153,12 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache NetDevPack472
         id: cache-netdevpack472
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
@@ -155,6 +173,9 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Get Cheat Engine info
         id: get-info
         run: |
@@ -171,7 +192,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Cache Cheat Engine
         id: cache-cheat-engine
-        uses: actions/cache@v3
+        uses: .github/workflows/actions/cache/action.yml
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
@@ -672,5 +693,5 @@ jobs:
           result-encoding: string
         env:
           XPPaths: |
-            C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A
-            C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v150\Platforms\**\PlatformToolsets\v141_xp
+            C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\**\PlatformToolsets\v141_xp
