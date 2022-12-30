@@ -44,7 +44,7 @@ jobs:
             -Regex '(?<=<PackageName Value=").*?(?="\/>)'
       - name: Cache Lazarus
         id: cache-lazarus
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
@@ -79,7 +79,7 @@ jobs:
       - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache XP
         id: cache-xp
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: ${{ needs.get-paths.outputs.xp }}
           key: XP
@@ -98,7 +98,7 @@ jobs:
       - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache VS2013
         id: cache-vs2013
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
@@ -121,7 +121,7 @@ jobs:
       - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache DirectX
         id: cache-directx
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
@@ -141,7 +141,7 @@ jobs:
       - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache NETDevPack461
         id: cache-netdevpack461
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
@@ -158,7 +158,7 @@ jobs:
       - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
       - name: Cache NetDevPack472
         id: cache-netdevpack472
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
@@ -192,7 +192,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Cache Cheat Engine
         id: cache-cheat-engine
-        uses: ./.github/workflows/actions/cache
+        uses: actions/cache@v3
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
