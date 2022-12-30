@@ -672,5 +672,5 @@ jobs:
           result-encoding: string
         env:
           XPPaths: |
-            C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A
+            C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A
             C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v150\Platforms\**\PlatformToolsets\v141_xp
