@@ -23,7 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -74,7 +75,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache XP
         id: cache-xp
         uses: actions/cache@v3
@@ -92,7 +94,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache VS2013
         id: cache-vs2013
         uses: actions/cache@v3
@@ -114,7 +117,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache DirectX
         id: cache-directx
         uses: actions/cache@v3
@@ -133,7 +137,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NETDevPack461
         id: cache-netdevpack461
         uses: actions/cache@v3
@@ -149,7 +154,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NetDevPack472
         id: cache-netdevpack472
         uses: actions/cache@v3
@@ -168,7 +174,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Cheat Engine info
         id: get-info
         run: |
@@ -224,7 +231,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use GNU tar
-        run: echo C:\Program Files\Git\usr\bin >> $env:GITHUB_PATH
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -253,9 +261,10 @@ jobs:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
       - name: Add Lazarus to path
+        shell: cmd
         run: |
-          echo "${{github.workspace}}\work\lazarus" >> $env:GITHUB_PATH
-          echo "${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}" >> $env:GITHUB_PATH
+          echo ${{github.workspace}}\work\lazarus>>"%GITHUB_PATH%"
+          echo ${{github.workspace}}\work\lazarus\fpc\${{ steps.get-info.outputs.fpc }}>>"%GITHUB_PATH%"
       - name: Apply fixes
         run: py ./.github/workflows/scripts/fixes.py
       - name: Build 32-Bit
