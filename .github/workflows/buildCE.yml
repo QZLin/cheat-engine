@@ -22,9 +22,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Lazarus info
         id: get-info
         run: |
@@ -74,9 +76,11 @@ jobs:
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache XP
         id: cache-xp
         uses: actions/cache@v3
@@ -93,9 +97,11 @@ jobs:
     needs: get-paths
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache VS2013
         id: cache-vs2013
         uses: actions/cache@v3
@@ -116,9 +122,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache DirectX
         id: cache-directx
         uses: actions/cache@v3
@@ -136,9 +144,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NETDevPack461
         id: cache-netdevpack461
         uses: actions/cache@v3
@@ -153,9 +163,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NetDevPack472
         id: cache-netdevpack472
         uses: actions/cache@v3
@@ -173,9 +185,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - run: node ${{ github.workspace }}\.github\workflows\scripts\patch-cache.js
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Cheat Engine info
         id: get-info
         run: |
@@ -230,6 +244,11 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
       - uses: actions/checkout@v3
+      - name: Use GNU tar
+        shell: cmd
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Get Lazarus info
         id: get-info
         run: |
