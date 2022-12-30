@@ -16,7 +16,7 @@ minor = cast(Element, versionInfo.find("MinorVersionNr")).get("Value")
 revision = cast(Element, versionInfo.find("RevisionNr")).get("Value")
 build = cast(Element, versionInfo.find("BuildNr")).get("Value")
 
-isotime = datetime.utcnow().isoformat(timespec="miliseconds")
+isotime = datetime.utcnow().isoformat(timespec="milliseconds")
 time = datetime.now(None).isoformat(" ", "minutes")
 
 with open(cast(str, environ.get("GITHUB_OUTPUT")), "a") as output:
