@@ -469,6 +469,12 @@ jobs:
           body: '<time datetime="${{ steps.get-build-info.outputs.isotime }}">${{ steps.get-build-info.outputs.time }}</time>'
           tag: ${{ steps.get-build-info.outputs.major }}.${{ steps.get-build-info.outputs.minor }}.${{ steps.get-build-info.outputs.revision }}-${{ steps.get-build-info.outputs.build }}
           name: "${{ steps.get-build-info.outputs.major }}.${{ steps.get-build-info.outputs.minor }}.${{ steps.get-build-info.outputs.revision }} (Build: ${{ steps.get-build-info.outputs.build }})"
+      - name: Update tag
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: ${{ steps.get-build-info.outputs.major }}.${{ steps.get-build-info.outputs.minor }}.${{ steps.get-build-info.outputs.revision }}-${{ steps.get-build-info.outputs.build }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   get-paths:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
