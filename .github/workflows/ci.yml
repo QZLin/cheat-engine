@@ -24,6 +24,19 @@ jobs:
           upstream_sync_repo: cheat-engine/cheat-engine
         env:
           UNSHALLOW: true
+      - name: Download artifact
+        if: steps.sync.outputs.has_new_commits == 'false'
+        uses: aochmann/actions-download-artifact@1.0.4
+        with:
+          name: Release
+          latest: true
+          path: artifact
+      - name: Upload artifact
+        if: steps.sync.outputs.has_new_commits == 'false'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Release
+          path: artifact
   start_build:
     needs: sync_latest_from_upstream
     if: needs.sync_latest_from_upstream.outputs.has_new_commits == 'true'
