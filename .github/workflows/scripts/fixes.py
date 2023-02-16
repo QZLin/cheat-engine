@@ -1,6 +1,7 @@
 from typing import cast
 from xml.etree.ElementTree import Element, SubElement, parse
 from os import getcwd, path
+from glob import glob
 
 cwd = path.abspath(getcwd())
 
@@ -146,4 +147,17 @@ with open(filepath, "r") as f:
 with open(filepath, "w") as f:
   f.write(data)
 """
+#endregion
+
+#region cepack fix
+fileglob = path.join(cwd, "Cheat Engine/ceregreset/*.res")
+filepath = path.join(cwd, "Cheat Engine/ceregreset/ceregreset.dpr")
+files = glob(fileglob)
+if (len(files) == 0):
+  with open(filepath, "r") as f:
+    data = f.read()
+    data = data.replace("{$R *.res}", "")
+
+  with open(filepath, "w") as f:
+    f.write(data)
 #endregion

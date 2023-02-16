@@ -24,9 +24,14 @@ jobs:
           upstream_sync_repo: cheat-engine/cheat-engine
         env:
           UNSHALLOW: true
+      - name: Start build
+        if: steps.sync.outputs.has_new_commits == 'true'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: buildCE.yml
       - name: Download artifact
         if: steps.sync.outputs.has_new_commits == 'false'
-        uses: aochmann/actions-download-artifact@1.0.4
+        uses: ardittristan/actions-download-artifact@master
         with:
           name: Release
           latest: true
@@ -37,7 +42,3 @@ jobs:
         with:
           name: Release
           path: artifact
-  start_build:
-    needs: sync_latest_from_upstream
-    if: needs.sync_latest_from_upstream.outputs.has_new_commits == 'true'
-    uses: ./.github/workflows/buildCE.yml

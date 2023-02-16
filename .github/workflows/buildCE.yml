@@ -276,6 +276,9 @@ jobs:
       - name: Build 64-Bit O4 AVX2
         if: ${{ success() || failure() }}
         run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
+      - name: Build cepack
+        if: ${{ success() || failure() }}
+        run: lazbuild --build-mode="Default" --no-write-project "Cheat Engine/cepack/cepack.lpi"
       - name: Build 32-Bit speedhack
         if: ${{ success() || failure() }}
         run: lazbuild --build-mode="32-bit" --no-write-project "Cheat Engine/speedhack/speedhack.lpi"
@@ -435,6 +438,10 @@ jobs:
           xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\vmdisk.*" bin\
           xcopy "C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}\Kernelmoduleunloader.exe" bin\
         working-directory: ${{ github.workspace }}\Cheat Engine
+      - name: pack files
+        if: ${{ success() || failure() }}
+        run: ./packfiles.bat
+        working-directory: ${{ github.workspace }}\Cheat Engine\bin
       - name: Remove debug files
         if: ${{ success() || failure() }}
         shell: bash
