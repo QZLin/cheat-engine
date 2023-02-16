@@ -11,10 +11,22 @@ tree = parse(filepath)
 root = tree.getroot()
 versionInfo = cast(Element, root.find("ProjectOptions/VersionInfo"))
 
-major = cast(Element, versionInfo.find("MajorVersionNr")).get("Value")
-minor = cast(Element, versionInfo.find("MinorVersionNr")).get("Value")
-revision = cast(Element, versionInfo.find("RevisionNr")).get("Value")
-build = cast(Element, versionInfo.find("BuildNr")).get("Value")
+try:
+  major = cast(Element, versionInfo.find("MajorVersionNr")).get("Value")
+except AttributeError:
+  major = 0
+try:
+  minor = cast(Element, versionInfo.find("MinorVersionNr")).get("Value")
+except AttributeError:
+  minor = 0
+try:
+  revision = cast(Element, versionInfo.find("RevisionNr")).get("Value")
+except AttributeError:
+  revision = 0
+try:
+  build = cast(Element, versionInfo.find("BuildNr")).get("Value")
+except AttributeError:
+  build = 0
 
 isotime = datetime.utcnow().isoformat(timespec="milliseconds")
 time = datetime.now(None).isoformat(" ", "minutes")
