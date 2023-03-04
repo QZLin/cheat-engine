@@ -5041,7 +5041,7 @@ begin
   if lua_gettop(L)>=1 then
     luaclass_newClass(L, TOpenDialog.create(lua_toceuserdata(L, 1)))
   else
-    luaclass_newClass(L, TOpenDialog.create(nil));
+    luaclass_newClass(L, TOpenDialog.create(nil), true);
 
   result:=1;
 end;
@@ -16347,8 +16347,6 @@ begin
 {$endif}
 
 
-
-
 end;
 
 procedure InitializeLua;
@@ -17026,6 +17024,8 @@ begin
     lua_register(L, 'growMemoryRegion', lua_growMemoryRegion);
 
     lua_register(L, 'loadCEServerExtension', lua_loadCEServerExtension);
+
+
 
 
 
