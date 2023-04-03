@@ -2,6 +2,7 @@ from typing import cast
 from xml.etree.ElementTree import Element, SubElement, parse
 from os import getcwd, path
 from glob import glob
+from re import sub
 
 cwd = path.abspath(getcwd())
 
@@ -168,6 +169,16 @@ filepath = path.join(cwd, "Cheat Engine/guisafecriticalsection.pas")
 with open(filepath, "r") as f:
   data = f.read()
   data = data.replace("+GetThreadName(lockedthreadid)+", "+")
+
+with open(filepath, "w") as f:
+  f.write(data)
+#endregion
+
+#region forgotten semicolon fix
+filepath = path.join(cwd, "Cheat Engine/frmautoinjectunit.pas")
+with open(filepath, "r") as f:
+  data = f.read()
+  data = sub(r"commapos:=d\.LastDisassembleData\.parameters\.IndexOf\(','\)(?=[^;])", "commapos:=d.LastDisassembleData.parameters.IndexOf(',');", data)
 
 with open(filepath, "w") as f:
   f.write(data)
