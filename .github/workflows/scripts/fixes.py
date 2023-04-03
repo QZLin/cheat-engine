@@ -161,3 +161,14 @@ if (len(files) == 0):
   with open(filepath, "w") as f:
     f.write(data)
 #endregion
+
+#region GetThreadName fix
+filepath = path.join(cwd, "Cheat Engine/guisafecriticalsection.pas")
+
+with open(filepath, "r") as f:
+  data = f.read()
+  data = data.replace("+GetThreadName(lockedthreadid)+", "+")
+
+with open(filepath, "w") as f:
+  f.write(data)
+#endregion
