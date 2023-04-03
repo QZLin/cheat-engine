@@ -196,9 +196,17 @@ jobs:
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
+      - uses: actions/setup-node@v3
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        with:
+          node-version: 18
+      - name: Generate User Agent
+        if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
+        id: generate-ua
+        run: node --experimental-network-imports --no-warnings ./.github/workflows/scripts/getUA.mjs
       - name: Download installer
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
-        run: curl.exe -L -o CheatEngine.exe ${{ steps.get-info.outputs.ceurl }}
+        run: curl.exe -A '${{ steps.generate-ua.outputs.ua }}' -L -o CheatEngine.exe ${{ steps.get-info.outputs.ceurl }}
       - name: Download extractor
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         run: curl.exe -L --retry 15 --retry-all-errors --retry-delay 5 -o innounp050.rar https://downloads.sourceforge.net/project/innounp/innounp/innounp%200.50/innounp050.rar
