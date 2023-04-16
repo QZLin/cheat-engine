@@ -268,6 +268,7 @@ jobs:
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
+          fail-on-cache-miss: true
       - name: Add Lazarus to path
         shell: cmd
         run: |
@@ -335,6 +336,7 @@ jobs:
         with:
           path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
+          fail-on-cache-miss: true
       - name: Apply VS2013 reg
         if: ${{ success() || failure() }}
         run: regedit /s vs2013.reg
@@ -345,6 +347,7 @@ jobs:
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
+          fail-on-cache-miss: true
       - name: Add msbuild to PATH
         if: ${{ success() || failure() }}
         uses: microsoft/setup-msbuild@v1
@@ -362,6 +365,7 @@ jobs:
         with:
           path: ${{ needs.get-paths.outputs.xp }}
           key: XP
+          fail-on-cache-miss: true
       - name: Apply XP reg
         if: ${{ success() || failure() }}
         run: regedit /s xp.reg
@@ -372,6 +376,7 @@ jobs:
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
+          fail-on-cache-miss: true
       - name: Install NETDevPack461
         if: ${{ success() || failure() }}
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\ndp461-devpack-kb3105179-enu.exe -Arguments '/quiet /norestart'
@@ -393,6 +398,7 @@ jobs:
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
+          fail-on-cache-miss: true
       - name: Build 32-Bit DotNetDataCollector
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration=Release -property:Platform=Win32"
@@ -439,6 +445,7 @@ jobs:
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
+          fail-on-cache-miss: true
       - name: Copy dbk
         if: ${{ success() || failure() }}
         run: |
