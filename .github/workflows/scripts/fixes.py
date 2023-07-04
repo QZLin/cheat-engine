@@ -183,3 +183,15 @@ with open(filepath, "r") as f:
 with open(filepath, "w") as f:
   f.write(data)
 #endregion
+
+
+#region undefined offset value
+filepath = path.join(cwd, "Cheat Engine/LuaByteTable.pas")
+with open(filepath, "r") as f:
+  data = f.read()
+  if (data.count("offset") == 1):
+    data = data.replace("offset", "tablestartindex")
+
+    with open(filepath, "w") as f:
+      f.write(data)
+#endregion
