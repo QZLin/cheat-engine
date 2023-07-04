@@ -477,6 +477,12 @@ jobs:
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"
+      - name: Send failure webhook
+        if: ${{ failure() }}
+        uses: sebastianpopp/discord-action@releases/v2
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          message: Run failed!
       - name: Get build info
         id: get-build-info
         run: py ./.github/workflows/scripts/version.py
