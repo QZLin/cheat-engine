@@ -4,12 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       max-age:
-        default: 0
+        default: "0"
 
 jobs:
   purge-cache:
     runs-on: ubuntu-latest
     steps:
-      - uses: MyAlbum/purge-cache@v1
+      - uses: MyAlbum/purge-cache@v2
         with:
           max-age: ${{ inputs.max-age }}
+          accessed: false
+          created: true

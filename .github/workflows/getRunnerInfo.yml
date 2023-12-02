@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Get VS2013 existing files
         id: vs2013-existing-files
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const paths = [];
@@ -35,7 +35,7 @@ jobs:
           contents: ${{ steps.vs2013-existing-files.outputs.result }}
       - name: Get XP existing files
         id: xp-existing-files
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const paths = [];
