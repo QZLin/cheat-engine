@@ -261,7 +261,7 @@ jobs:
         id: cuda-toolkit
         with:
           cuda: '12.3.1'
-          use-github-caches: false
+          use-github-cache: false
       - name: Save CUDA Path
         if: steps.cache-cuda.outputs.cache-hit != 'true'
         run: |
