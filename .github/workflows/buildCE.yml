@@ -266,7 +266,7 @@ jobs:
         if: steps.cache-cuda.outputs.cache-hit != 'true'
         run: |
           ${{ github.workspace }}\.github\workflows\scripts\WriteToFile.ps1 `
-            -Var ${{ steps.cuda-toolkit.outputs.CUDA_PATH }} `
+            -Var '${{ steps.cuda-toolkit.outputs.CUDA_PATH }}' `
             -OutputPath ${{ github.workspace }}\CUDA
   build:
     needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-cuda, get-paths]
