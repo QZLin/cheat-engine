@@ -260,7 +260,7 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.11
         id: cuda-toolkit
         with:
-          cuda: '12.3.1'
+          cuda: '12.2.0'
           use-github-cache: false
       - name: Save CUDA Path
         if: steps.cache-cuda.outputs.cache-hit != 'true'

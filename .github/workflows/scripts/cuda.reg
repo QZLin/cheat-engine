@@ -5,9 +5,9 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\GPU Computing Toolkit]
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\GPU Computing Toolkit\CUDA]
-"FirstVersionInstalled"="v12.3"
+"FirstVersionInstalled"="v12.2"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\GPU Computing Toolkit\CUDA\v12.3]
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\GPU Computing Toolkit\CUDA\v12.2]
 "64BitInstalled"="1"
 "InstalledBy"="Retail"
 
