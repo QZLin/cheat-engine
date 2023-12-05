@@ -239,8 +239,37 @@ jobs:
       - name: Install Cheat Engine
         if: steps.cache-cheat-engine.outputs.cache-hit != 'true'
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\CheatEngineExtracted.exe -Arguments '/VERYSILENT /ZBDIST'
+  cache-cuda:
+    runs-on: windows-2022
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
+    needs: get-paths
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use GNU tar
+        shell: cmd
+        run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+      - name: Cache CUDA
+        id: cache-cuda
+        uses: actions/cache@v3
+        with:
+          lookup-only: true
+          path: ${{ needs.get-paths.outputs.cuda }}
+          key: CUDA
+      - name: Install CUDA
+        if: steps.cache-cuda.outputs.cache-hit != 'true'
+        uses: Jimver/cuda-toolkit@v0.2.11
+        id: cuda-toolkit
+        with:
+          cuda: '12.3.1'
+          use-github-caches: false
+      - name: Save CUDA Path
+        if: steps.cache-cuda.outputs.cache-hit != 'true'
+        run: |
+          ${{ github.workspace }}\.github\workflows\scripts\WriteToFile.ps1 `
+            -Var ${{ steps.cuda-toolkit.outputs.CUDA_PATH }} `
+            -OutputPath ${{ github.workspace }}\CUDA
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, get-paths]
+    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-cuda, get-paths]
     runs-on: windows-2022
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
@@ -322,6 +351,9 @@ jobs:
       - name: Build ceregreset
         if: ${{ success() || failure() }}
         run: lazbuild --build-mode="Release" --no-write-project "Cheat Engine/ceregreset/ceregreset.lpi"
+      - name: Build ceregreset runtimemod
+        if: ${{ success() || failure() }}
+        run: lazbuild --build-mode="Release runtime mod" --no-write-project "Cheat Engine/ceregreset/ceregreset.lpi"
       - name: Build 32-Bit tutorial
         if: ${{ success() || failure() }}
         run: lazbuild --build-mode="release 32-Bit" --no-write-project "Cheat Engine/Tutorial/tutorial.lpi"
@@ -337,6 +369,12 @@ jobs:
       - name: Build 64-Bit winhook
         if: ${{ success() || failure() }}
         run: lazbuild --build-mode="Release 64" --no-write-project "Cheat Engine/winhook/winhook.lpi"
+      - name: Build Cheat Engine launcher
+        if: ${{ success() || failure() }}
+        run: lazbuild --build-mode="release" --no-write-project "Cheat Engine/launcher/cheatengine.lpi"
+      - name: Build Cheat Engine launcher rtmod
+        if: ${{ success() || failure() }}
+        run: lazbuild --build-mode="release rtmod" --no-write-project "Cheat Engine/launcher/cheatengine.lpi"
       - name: Load VS2013 Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -446,6 +484,12 @@ jobs:
         if: ${{ success() || failure() }}
         run: xcopy plugin bin\plugins\ /E/H
         working-directory: ${{ github.workspace }}\Cheat Engine
+# todo: build cuda pointerscan (don't forget to apply reg)
+# todo: maybe build dbk32
+# todo: dl vmdisk from cheat engine site or maybe build dbvm
+# todo: maybe build kernelmoduleloader
+# todo: build cejvmti
+# todo: build both standalonelevel in sfx
       - name: Load Cheat Engine Cache
         if: ${{ success() || failure() }}
         uses: actions/cache@v3
@@ -516,6 +560,7 @@ jobs:
     outputs:
       vs2013: ${{ steps.get-vs2013-paths.outputs.result }}
       xp: ${{ steps.get-xp-paths.outputs.result }}
+      cuda: ${{ steps.get-cuda-paths.outputs.result }}
     steps:
       - uses: actions/github-script@v7
         id: get-vs2013-paths
@@ -753,3 +798,14 @@ jobs:
           XPPaths: |
             C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A
             C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v150\Platforms\**\PlatformToolsets\v141_xp
+      - uses: actions/github-script@v7
+        id: get-cuda-paths
+        with:
+          script: return process.env.CUDAPaths
+          result-encoding: string
+        env:
+          CUDAPaths: |
+            C:\Program Files\NVIDIA GPU Computing Toolkit
+            C:\Program Files (x86)\MSBuild\Microsoft.Cpp\BuildCustomizations\CUDA*
+            C:\ProgramData\NVIDIA GPU Computing Toolkit
+            ${{ github.workspace }}\CUDA
