@@ -29,7 +29,7 @@ jobs:
           VS2013Paths: ${{ needs.get-paths.outputs.vs2013 }}
       - name: Write VS2013 existing files
         if: steps.vs2013-existing-files.outputs.result != 0
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: vs2013.txt
           contents: ${{ steps.vs2013-existing-files.outputs.result }}
@@ -50,7 +50,7 @@ jobs:
           XPPaths: ${{ needs.get-paths.outputs.xp }}
       - name: Write XP existing files
         if: steps.xp-existing-files.outputs.result != 0
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: xp.txt
           contents: ${{ steps.xp-existing-files.outputs.result }}
@@ -60,7 +60,7 @@ jobs:
         run: |
           hobocopy C:\Windows\System32\config ${{ github.workspace }} SYSTEM SOFTWARE
           hobocopy C:\Users\runneradmin ${{ github.workspace }} NTUSER.DAT
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: relevant-info
           path: |

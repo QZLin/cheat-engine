@@ -44,7 +44,7 @@ jobs:
             -Regex '(?<=<PackageName Value=").*?(?="\/>)'
       - name: Cache Lazarus
         id: cache-lazarus
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: ${{ github.workspace }}\work
@@ -80,7 +80,7 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache XP
         id: cache-xp
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: ${{ needs.get-paths.outputs.xp }}
@@ -100,7 +100,7 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache VS2013
         id: cache-vs2013
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: ${{ needs.get-paths.outputs.vs2013 }}
@@ -124,7 +124,7 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache DirectX
         id: cache-directx
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
@@ -145,7 +145,7 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NETDevPack461
         id: cache-netdevpack461
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
@@ -163,7 +163,7 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache NetDevPack472
         id: cache-netdevpack472
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
@@ -198,7 +198,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Cache Cheat Engine
         id: cache-cheat-engine
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
@@ -250,18 +250,19 @@ jobs:
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache CUDA
         id: cache-cuda
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           lookup-only: true
           path: ${{ needs.get-paths.outputs.cuda }}
           key: CUDA
       - name: Install CUDA
         if: steps.cache-cuda.outputs.cache-hit != 'true'
-        uses: Jimver/cuda-toolkit@v0.2.11
+        uses: Jimver/cuda-toolkit@v0.2.14
         id: cuda-toolkit
         with:
           cuda: '12.2.0'
           use-github-cache: false
+          use-local-cache: false
       - name: Save CUDA Path
         if: steps.cache-cuda.outputs.cache-hit != 'true'
         run: |
@@ -300,7 +301,7 @@ jobs:
             -Regex 'Download Cheat Engine (?<version>[0-9.]+)' `
             -RegexGroup version
       - name: Load Lazarus Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
@@ -377,7 +378,7 @@ jobs:
         run: lazbuild --build-mode="release rtmod" --no-write-project "Cheat Engine/launcher/cheatengine.lpi"
       - name: Load VS2013 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
@@ -388,14 +389,14 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load DirectX Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
           fail-on-cache-miss: true
       - name: Add msbuild to PATH
         if: ${{ success() || failure() }}
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v2
       - name: Build 32-Bit Direct x mess
         if: ${{ success() || failure() }}
         run: "msbuild -property:Configuration=Release -property:Platform=Win32"
@@ -406,7 +407,7 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
       - name: Load XP Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ needs.get-paths.outputs.xp }}
           key: XP
@@ -417,7 +418,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
@@ -439,7 +440,7 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
       - name: Load NetDevPack472 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
@@ -492,7 +493,7 @@ jobs:
 # todo: build both standalonelevel in sfx
       - name: Load Cheat Engine Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
@@ -524,7 +525,7 @@ jobs:
         working-directory: "./Cheat Engine/bin"
       - name: Release artifact
         if: ${{ success() || failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Release
           path: "Cheat Engine/bin/release.zip"

@@ -105,33 +105,33 @@ with open(dxBaseCppPath, "w") as f:
 #endregion
 
 #region MonoDataCollector fix
-filepath = path.join(
-  cwd,
-  "Cheat Engine/MonoDataCollector/MonoDataCollector/MonoDataCollector.vcxproj")
+# filepath = path.join(
+#   cwd,
+#   "Cheat Engine/MonoDataCollector/MonoDataCollector/MonoDataCollector.vcxproj")
 
-with open(filepath, "r") as f:
-  data = f.read()
-  data = data.replace("Unicode", "Multibyte")
+# with open(filepath, "r") as f:
+#   data = f.read()
+#   data = data.replace("Unicode", "Multibyte")
 
-with open(filepath, "w") as f:
-  f.write(data)
+# with open(filepath, "w") as f:
+#   f.write(data)
 
-filepath = path.join(
-  cwd, "Cheat Engine/MonoDataCollector/MonoDataCollector/PipeServer.cpp")
+# filepath = path.join(
+#   cwd, "Cheat Engine/MonoDataCollector/MonoDataCollector/PipeServer.cpp")
 
-with open(filepath, "r") as f:
-  data = f.read()
-  data = data.replace('GetModuleHandle(L"mono.dll")',
-                      'GetModuleHandle("mono.dll")')
-"""
-  data = data.replace("#ifndef WINDOWS", "#ifndef _WINDOWS")
-  data = data.replace(
-    'OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()',
-    '//OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()')
-"""
+# with open(filepath, "r") as f:
+#   data = f.read()
+#   data = data.replace('GetModuleHandle(L"mono.dll")',
+#                       'GetModuleHandle("mono.dll")')
+# """
+#   data = data.replace("#ifndef WINDOWS", "#ifndef _WINDOWS")
+#   data = data.replace(
+#     'OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()',
+#     '//OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime()')
+# """
 
-with open(filepath, "w") as f:
-  f.write(data)
+# with open(filepath, "w") as f:
+#   f.write(data)
 #endregion
 
 #region DotNetDataCollector fix
@@ -164,34 +164,34 @@ if (len(files) == 0):
 #endregion
 
 #region GetThreadName fix
-filepath = path.join(cwd, "Cheat Engine/guisafecriticalsection.pas")
+# filepath = path.join(cwd, "Cheat Engine/guisafecriticalsection.pas")
 
-with open(filepath, "r") as f:
-  data = f.read()
-  data = data.replace("+GetThreadName(lockedthreadid)+", "+")
+# with open(filepath, "r") as f:
+#   data = f.read()
+#   data = data.replace("+GetThreadName(lockedthreadid)+", "+")
 
-with open(filepath, "w") as f:
-  f.write(data)
+# with open(filepath, "w") as f:
+#   f.write(data)
 #endregion
 
 #region forgotten semicolon fix
-filepath = path.join(cwd, "Cheat Engine/frmautoinjectunit.pas")
-with open(filepath, "r") as f:
-  data = f.read()
-  data = sub(r"commapos:=d\.LastDisassembleData\.parameters\.IndexOf\(','\)(?=[^;])", "commapos:=d.LastDisassembleData.parameters.IndexOf(',');", data)
+# filepath = path.join(cwd, "Cheat Engine/frmautoinjectunit.pas")
+# with open(filepath, "r") as f:
+#   data = f.read()
+#   data = sub(r"commapos:=d\.LastDisassembleData\.parameters\.IndexOf\(','\)(?=[^;])", "commapos:=d.LastDisassembleData.parameters.IndexOf(',');", data)
 
-with open(filepath, "w") as f:
-  f.write(data)
+# with open(filepath, "w") as f:
+#   f.write(data)
 #endregion
 
 
 #region undefined offset value
-filepath = path.join(cwd, "Cheat Engine/LuaByteTable.pas")
-with open(filepath, "r") as f:
-  data = f.read()
-  if (data.count("offset") == 1):
-    data = data.replace("offset", "tablestartindex")
+# filepath = path.join(cwd, "Cheat Engine/LuaByteTable.pas")
+# with open(filepath, "r") as f:
+#   data = f.read()
+#   if (data.count("offset") == 1):
+#     data = data.replace("offset", "tablestartindex")
 
-    with open(filepath, "w") as f:
-      f.write(data)
+#     with open(filepath, "w") as f:
+#       f.write(data)
 #endregion
