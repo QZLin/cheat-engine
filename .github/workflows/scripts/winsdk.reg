@@ -1,0 +1,100 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Kits\Installed Roots]
+"{3B588BBE-EB02-D1B2-5CD5-7DB85AD8A3E7}"="Universal CRT Tools x64 x64"
+"KitsRoot10"="C:\\Program Files (x86)\\Windows Kits\\10\\"
+"{90B0B603-7728-F869-3927-73232379BA5B}"="Windows SDK DirectX x64 Remote x64"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Kits\Installed Roots\10.0.17763.0\Installed Options]
+"OptionId.UWPManaged"=dword:00000001
+"OptionId.UWPCPP"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0]
+"InstallationFolder"="C:\\Program Files (x86)\\Windows Kits\\10\\"
+"ProductName"="Microsoft Windows SDK for Windows 10.0.17763"
+"ProductVersion"="10.0.17763"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\VSD3DProviders\{F4453496-1DB8-47F8-A7D5-31EBDDC2EC96}]
+"VSD3DLibraryPath"="C:\\Windows\\SysWOW64\\VSD3DRefDebug.dll"
+"DebuggingHLSL"=dword:00000000
+"GPU_DEBUG_ADAPTORS"="direct3d_ref:11"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows Kits\CEIP]
+"OptIn"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows Kits\Installed Roots]
+"{29B915AE-013F-151F-3E61-67F7363C3A09}"="Kits Configuration Installer x86"
+"{2DD06060-C61D-7C3A-AA55-6E3FD9493D61}"="Windows SDK EULA x86"
+"KitsRoot10"="C:\\Program Files (x86)\\Windows Kits\\10\\"
+"{6C961B30-A670-8A05-3BFE-3947E84DD4E4}"="MSI Development Tools x86"
+"{58770E7F-37C0-70F9-6CBF-2B18503B0EE0}"="Windows SDK Signing Tools x86"
+"{ED060DBD-1A21-7554-F2E1-06A0EE45900D}"="Windows SDK x86"
+"{1B278824-7541-EA8F-FFA1-8B73EC7146D5}"="Windows SDK for Windows Store Apps x86"
+"{A128C4CE-88C8-8BDF-FBE9-A517979E0BDD}"="Windows SDK for Windows Store Apps Metadata x86"
+"{BA610F2C-C1FA-0A65-2B4D-8272223AC061}"="Windows SDK for Windows Store Apps Tools x86"
+"{C1C8121A-6BDE-478E-3685-C09F9287D6F0}"="Windows SDK Modern Versioned Developer Tools x86"
+"{FBA500B3-235D-41E5-D748-F9FFD2C881FD}"="Windows SDK Modern Non-Versioned Developer Tools x86"
+"{716AE8F2-1BE3-7657-DF6B-F23DEEC75AF9}"="WinAppDeploy x86"
+"{9A0DC6A1-E91D-EB94-FB4D-41DDDE8A225D}"="Windows SDK for Windows Store Managed Apps Libs x86"
+"{36AA7E63-76E9-E591-C985-272415268810}"="Windows SDK for Windows Store Apps Contracts x86"
+"{CA7A8A65-AB2E-43AA-4110-10C50115E211}"="Windows SDK Facade Windows WinMD Versioned x86"
+"{CE83D0BD-418A-F3D1-D6CE-687E96D1EBD0}"="Universal General MIDI DLS Extension SDK x86"
+"{5F577A45-3C65-352B-061D-D6A57F05402C}"="Universal CRT Redistributable x86"
+"{CB19DBA2-C210-5646-9522-695A1317CD34}"="Universal CRT Headers Libraries and Sources x86"
+"{D2DC1EDF-EE04-9B5F-BDD7-06645D859EC3}"="Universal CRT Tools x86 x86"
+"{B047C746-63E8-41C7-A5C0-7ABD390CF3E6}"="WinRT Intellisense UAP - en-us x86"
+"{F6F11150-93DE-0507-FCA0-F746E0207017}"="WinRT Intellisense Mobile - en-us x86"
+"{00B12DF9-5428-9406-DE2C-8E8A1A062B05}"="WinRT Intellisense Desktop - en-us x86"
+"{7E898893-9C42-A572-7F57-FDE55CE812F7}"="WinRT Intellisense IoT - en-us x86"
+"{8329C3A0-8582-D1C2-67FF-800654BFDF45}"="WinRT Intellisense PPI - en-us x86"
+"{AC8F20B3-36BB-DE22-CA37-43BC967B3F47}"="Windows IoT Extension SDK Contracts x86"
+"{110B5402-97D4-DDA2-7B42-665D8325A44F}"="Windows IoT Extension SDK x86"
+"{A8B548F5-D495-BB71-F673-2D48FD7E764C}"="Windows Team Extension SDK x86"
+"{F57D8118-1428-ECB8-0729-A577A9A1DEA8}"="Windows Team Extension SDK Contracts x86"
+"{6FF4EDB8-56EA-640C-47CA-54C845F7D273}"="Windows Mobile Extension SDK Contracts x86"
+"{B38CF8FF-C0D9-B11D-6484-B95A81C72DDC}"="Windows Mobile Extension SDK x86"
+"{7D225043-6CC5-7B56-11DD-AFF90E4C1C0C}"="Universal CRT Extension SDK x86"
+"{942262C5-DA88-830D-7140-C5BCC896DD60}"="Windows Desktop Extension SDK Contracts x86"
+"{EC74C9E5-A88F-D4DF-1DD0-FA42FFBB298D}"="Windows Desktop Extension SDK x86"
+"{785711EA-DD49-D232-BB29-D48350CC458F}"="Windows SDK for Windows Store Apps Headers x86"
+"{DAED8629-A799-B67F-9751-F3A1C60EE335}"="Windows SDK for Windows Store Apps Libs x86"
+"{70DB40AD-109B-C0CB-9DBF-8B1EDAEBFF61}"="Windows SDK Redistributables x86"
+"{F84F82F2-4D6F-7EE7-A5EC-C57ECBAB3513}"="Windows SDK DirectX x86 Remote x86"
+"{929C5E30-584A-9E44-2C03-08AA27927317}"="Windows SDK for Windows Store Apps DirectX x86 Remote x86"
+"{C971A14A-F045-BD6A-C670-05C7B74A37FE}"="Windows SDK Desktop Headers x86 x86"
+"{D5B8B2F7-680B-B6D4-6353-377C73C0F8A8}"="Windows SDK Desktop Libs x86 x86"
+"{F770E8F3-139B-0373-8692-BF619445B8C2}"="Windows SDK Desktop Tools x86 x86"
+"{492AAE4A-619E-64BF-6173-DB4E25D67533}"="Windows SDK Desktop Headers x64 x86"
+"{AE5CE40F-6C6D-C95F-FD37-D9EF7093CA99}"="Windows SDK Desktop Libs x64 x86"
+"{8308EFA9-D647-6BF4-6525-349091FBD528}"="Windows SDK Desktop Tools x64 x86"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows Kits\Installed Roots\10.0.17763.0\Installed Options]
+"OptionId.KitsConfiguration"=dword:00000001
+"OptionId.WindowsSDKEULA"=dword:00000001
+"OptionId.MSIInstallTools"=dword:00000001
+"OptionId.SigningTools"=dword:00000001
+"OptionId.UWPManaged"=dword:00000001
+"OptionId.UWPCPP"=dword:00000001
+"OptionId.DesktopCPPx86"=dword:00000001
+"OptionId.DesktopCPPx64"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs]
+"C:\\Windows\\system32\\ucrtbased.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d10ref.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d10sdklayers.dll"=dword:00000001
+"C:\\Windows\\system32\\d3dref9.dll"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\SharedDlls]
+"C:\\Windows\\system32\\ucrtbased.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d10ref.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d10sdklayers.dll"=dword:00000001
+"C:\\Windows\\system32\\d3dref9.dll"=dword:00000001
+"C:\\Windows\\system32\\perf_gputiming.dll"=dword:00000001
+"C:\\Windows\\system32\\DXGIDebug.dll"=dword:00000001
+"C:\\Windows\\system32\\D2D1Debug2.dll"=dword:00000001
+"C:\\Windows\\system32\\dxcpl.exe"=dword:00000001
+"C:\\Windows\\system32\\d3d11ref.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d11_2sdklayers.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d11_1sdklayers.dll"=dword:00000001
+"C:\\Windows\\system32\\d3d11sdklayers.dll"=dword:00000001
+"C:\\Windows\\system32\\VSD3DRefDebug.dll"=dword:00000001

@@ -3,6 +3,16 @@ name: Get Runner Info
 on:
   workflow_dispatch:
 
+env:
+  LIST_FILES_SCRIPT: |
+    const paths = [];
+    const input = process.env.AllPaths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
+    const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
+    for await (const file of globber.globGenerator()) {
+      paths.push(file.toString());
+    }
+    return paths.join("\n");
+
 jobs:
   get-paths:
     uses: ./.github/workflows/buildCE.yml
@@ -16,17 +26,10 @@ jobs:
         id: vs2013-existing-files
         uses: actions/github-script@v7
         with:
-          script: |
-            const paths = [];
-            const input = process.env.VS2013Paths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
-            const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
-            for await (const file of globber.globGenerator()) {
-              paths.push(file.toString());
-            }
-            return paths.join("\n");
+          script: ${{ env.LIST_FILES_SCRIPT }}
           result-encoding: string
         env:
-          VS2013Paths: ${{ needs.get-paths.outputs.vs2013 }}
+          AllPaths: ${{ needs.get-paths.outputs.vs2013 }}
       - name: Write VS2013 existing files
         if: steps.vs2013-existing-files.outputs.result != 0
         uses: DamianReeves/write-file-action@v1.3
@@ -37,22 +40,43 @@ jobs:
         id: xp-existing-files
         uses: actions/github-script@v7
         with:
-          script: |
-            const paths = [];
-            const input = process.env.XPPaths.split("\n").map(s => s.replace(/^!\s+/, "!").trim()).filter(x => x !== "");
-            const globber = await glob.create(input.join("\n"), { implicitDescendants: false });
-            for await (const file of globber.globGenerator()) {
-              paths.push(file.toString());
-            }
-            return paths.join("\n");
+          script: ${{ env.LIST_FILES_SCRIPT }}
           result-encoding: string
         env:
-          XPPaths: ${{ needs.get-paths.outputs.xp }}
+          AllPaths: ${{ needs.get-paths.outputs.xp }}
       - name: Write XP existing files
         if: steps.xp-existing-files.outputs.result != 0
         uses: DamianReeves/write-file-action@v1.3
         with:
           path: xp.txt
+          contents: ${{ steps.xp-existing-files.outputs.result }}
+      - name: Get Cuda existing files
+        id: cuda-existing-files
+        uses: actions/github-script@v7
+        with:
+          script: ${{ env.LIST_FILES_SCRIPT }}
+          result-encoding: string
+        env:
+          AllPaths: ${{ needs.get-paths.outputs.cuda }}
+      - name: Write Cuda existing files
+        if: steps.cuda-existing-files.outputs.result != 0
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: cuda.txt
+          contents: ${{ steps.xp-existing-files.outputs.result }}
+      - name: Get Win10SDK existing files
+        id: win10sdk-existing-files
+        uses: actions/github-script@v7
+        with:
+          script: ${{ env.LIST_FILES_SCRIPT }}
+          result-encoding: string
+        env:
+          AllPaths: ${{ needs.get-paths.outputs.win10sdk }}
+      - name: Write Win10SDK existing files
+        if: steps.win10sdk-existing-files.outputs.result != 0
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: win10sdk.txt
           contents: ${{ steps.xp-existing-files.outputs.result }}
       - name: Install HoboCopy
         run: choco install hobocopy
@@ -66,6 +90,8 @@ jobs:
           path: |
             vs2013.txt
             xp.txt
+            cuda.txt
+            win10sdk.txt
             SYSTEM
             SOFTWARE
             NTUSER.DAT
