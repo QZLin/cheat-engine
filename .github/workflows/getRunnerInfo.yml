@@ -50,20 +50,6 @@ jobs:
         with:
           path: xp.txt
           contents: ${{ steps.xp-existing-files.outputs.result }}
-      - name: Get Cuda existing files
-        id: cuda-existing-files
-        uses: actions/github-script@v7
-        with:
-          script: ${{ env.LIST_FILES_SCRIPT }}
-          result-encoding: string
-        env:
-          AllPaths: ${{ needs.get-paths.outputs.cuda }}
-      - name: Write Cuda existing files
-        if: steps.cuda-existing-files.outputs.result != 0
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: cuda.txt
-          contents: ${{ steps.xp-existing-files.outputs.result }}
       - name: Get Win10SDK existing files
         id: win10sdk-existing-files
         uses: actions/github-script@v7
