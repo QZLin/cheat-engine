@@ -279,13 +279,20 @@ jobs:
       - name: Use GNU tar
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+      - name: Check WSL Debian Cache
+        id: debian-cache
+        uses: actions/cache/restore@v4
+        with:
+          lookup-only: true
+          path: dummy
+          key: 2:distributionDirectory_Debian_1.0.0
       - name: Setup WSL
-        if: ${{ success() || failure() }}
+        if: steps.debian-cache.outputs.cache-hit != 'true'
         uses: Vampire/setup-wsl@v3
         with:
           distribution: Debian
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-windowssdk, get-paths]
+    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-windowssdk, cache-wsl, get-paths]
     runs-on: windows-2022
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
@@ -316,7 +323,7 @@ jobs:
             -Regex 'Download Cheat Engine (?<version>[0-9.]+)' `
             -RegexGroup version
       - name: Load Lazarus Cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}\work
           key: lazarus-${{ steps.get-info.outputs.lazarus }}-${{ steps.get-info.outputs.fpc }}-${{ format(steps.get-info.outputs.dependencies, '_') }}
@@ -393,7 +400,7 @@ jobs:
         run: lazbuild --build-mode="release rtmod" --no-write-project "Cheat Engine/launcher/cheatengine.lpi"
       - name: Load VS2013 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ needs.get-paths.outputs.vs2013 }}
           key: VS2013
@@ -404,7 +411,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load DirectX Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)
           key: DirectX
@@ -422,7 +429,7 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\Direct x mess
       - name: Load XP Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ needs.get-paths.outputs.xp }}
           key: XP
@@ -433,7 +440,7 @@ jobs:
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}\ndp461-devpack-kb3105179-enu.exe
           key: NETDevPack461
@@ -455,7 +462,7 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\MonoDataCollector
       - name: Load NetDevPack472 Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: C:\Program Files (x86)\Windows Kits\NETFXSDK\4.7.2
           key: NetDevPack472
@@ -474,7 +481,7 @@ jobs:
         working-directory: ${{ github.workspace }}\Cheat Engine\DotNetInvasiveDataCollector\DotNetInterface2
       - name: Load Win10SDK Cache if not installed
         if: ${{ (success() && !needs.cache-windowssdk.outputs.installed) || (failure() && !needs.cache-windowssdk.outputs.installed) }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         id: load-windows-sdk
         with:
           path: ${{ needs.get-paths.outputs.win10sdk }}
@@ -551,7 +558,7 @@ jobs:
 # todo: build both standalonelevel in sfx
       - name: Load Cheat Engine Cache
         if: ${{ success() || failure() }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: C:\Program Files\Cheat Engine ${{ steps.get-info.outputs.ce }}
           key: CheatEngine${{ steps.get-info.outputs.ce }}
