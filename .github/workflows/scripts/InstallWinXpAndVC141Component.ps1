@@ -1,6 +1,7 @@
 Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
 $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
 $componentsToAdd = @(
+  "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
   "Microsoft.VisualStudio.Component.WinXP"
 )
 [string]$workloadArgs = $componentsToAdd | ForEach-Object { " --add " + $_ }

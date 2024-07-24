@@ -50,6 +50,20 @@ jobs:
         with:
           path: xp.txt
           contents: ${{ steps.xp-existing-files.outputs.result }}
+      - name: Get VC141 existing files
+        id: vc141-existing-files
+        uses: actions/github-script@v7
+        with:
+          script: ${{ env.LIST_FILES_SCRIPT }}
+          result-encoding: string
+        env:
+          AllPaths: ${{ needs.get-paths.outputs.vc141 }}
+      - name: Write VC141 existing files
+        if: steps.vc141-existing-files.outputs.result != 0
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: vc141.txt
+          contents: ${{ steps.vc141-existing-files.outputs.result }}
       - name: Get Win10SDK existing files
         id: win10sdk-existing-files
         uses: actions/github-script@v7
@@ -76,6 +90,7 @@ jobs:
           path: |
             vs2013.txt
             xp.txt
+            vc141.txt
             cuda.txt
             win10sdk.txt
             SYSTEM

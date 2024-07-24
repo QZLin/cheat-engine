@@ -12,6 +12,8 @@ on:
         value: ${{ jobs.get-paths.outputs.vs2013 }}
       xp:
         value: ${{ jobs.get-paths.outputs.xp }}
+      vc141:
+        value: ${{ jobs.get-paths.outputs.vc141 }}
       win10sdk:
         value: ${{ jobs.get-paths.outputs.win10sdk }}
   push:
@@ -71,7 +73,7 @@ jobs:
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: ${{ github.workspace }}\.github\workflows\scripts\RunInstaller.ps1 -InstallerFile .\32bit.exe -Arguments '/VERYSILENT /DIR=${{ github.workspace }}\work\lazarus'
         working-directory: ${{ github.workspace }}\work
-  cache-xp:
+  cache-xp-vc141:
     runs-on: windows-2022
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     needs: get-paths
@@ -81,15 +83,17 @@ jobs:
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
       - name: Cache XP
-        id: cache-xp
+        id: cache-xp-vc141
         uses: actions/cache@v4
         with:
           lookup-only: true
-          path: ${{ needs.get-paths.outputs.xp }}
-          key: XP
+          path: |
+            ${{ needs.get-paths.outputs.xp }}
+            ${{ needs.get-paths.outputs.vc141 }}
+          key: XP-VC141
       - name: Install winxp component on windows 2022
-        if: steps.cache-xp.outputs.cache-hit != 'true'
-        run: .\InstallWinXpComponent.ps1
+        if: steps.cache-xp-vc141.outputs.cache-hit != 'true'
+        run: .\InstallWinXpAndVC141Component.ps1
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
   cache-vs2013:
     runs-on: windows-2022
@@ -292,7 +296,7 @@ jobs:
         with:
           distribution: Debian
   build:
-    needs: [cache-lazarus, cache-vs2013, cache-xp, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-windowssdk, cache-wsl, get-paths]
+    needs: [cache-lazarus, cache-vs2013, cache-xp-vc141, cache-directx, cache-netdevpack461, cache-netdevpack472, cache-ce-orig, cache-windowssdk, cache-wsl, get-paths]
     runs-on: windows-2022
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !inputs.info-only }}
     steps:
@@ -432,11 +436,15 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ needs.get-paths.outputs.xp }}
-          key: XP
+          key: XP-VC141
           fail-on-cache-miss: true
       - name: Apply XP reg
         if: ${{ success() || failure() }}
         run: regedit /s xp.reg
+        working-directory: ${{ github.workspace }}\.github\workflows\scripts
+      - name: Apply VC141 reg
+        if: ${{ success() || failure() }}
+        run: regedit /s vc141.reg
         working-directory: ${{ github.workspace }}\.github\workflows\scripts
       - name: Load NETDevPack461 Cache
         if: ${{ success() || failure() }}
@@ -648,6 +656,7 @@ jobs:
     outputs:
       vs2013: ${{ steps.get-vs2013-paths.outputs.result }}
       xp: ${{ steps.get-xp-paths.outputs.result }}
+      vc141: ${{ steps.get-vc141-paths.outputs.result }}
       win10sdk: ${{ steps.get-win10sdk-paths.outputs.result }}
     steps:
       - uses: actions/github-script@v7
@@ -877,6 +886,20 @@ jobs:
           # C:\Windows\SysWOW64\vccorlib120.dll
           # C:\Windows\SysWOW64\VSD3DRefDebug.dll
           # C:\Windows\SysWOW64\vsd3dwarpdebug.dll
+      - uses: actions/github-script@v7
+        id: get-vc141-paths
+        with:
+          script: return process.env.VC141Paths
+          result-encoding: string
+        env:
+          VC141Paths: |
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\VC\vc.tools.hostx*.targetx*.14.16.pkgdef
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v150
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\14.16
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.props
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.txt
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\14.16.27012
+            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.16.27023
       - uses: actions/github-script@v7
         id: get-xp-paths
         with:
