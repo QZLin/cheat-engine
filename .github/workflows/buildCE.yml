@@ -893,13 +893,13 @@ jobs:
           result-encoding: string
         env:
           VC141Paths: |
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\VC\vc.tools.hostx*.targetx*.14.16.pkgdef
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v150
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\14.16
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.props
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.txt
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\14.16.27012
-            C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.16.27023
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\VC\vc.tools.hostx*.targetx*.14.16.pkgdef
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v150
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\14.16
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.props
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v141.default.txt
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\14.16.27012
+            C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.16.27023
       - uses: actions/github-script@v7
         id: get-xp-paths
         with:
