@@ -88,8 +88,7 @@ jobs:
         with:
           lookup-only: true
           path: |
-            ${{ needs.get-paths.outputs.xp }}
-            ${{ needs.get-paths.outputs.vc141 }}
+            ${{ needs.get-paths.outputs.xp }}${{ needs.get-paths.outputs.vc141 }}
           key: XP-VC141
       - name: Install winxp component on windows 2022
         if: steps.cache-xp-vc141.outputs.cache-hit != 'true'
@@ -436,8 +435,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ needs.get-paths.outputs.xp }}
-            ${{ needs.get-paths.outputs.vc141 }}
+            ${{ needs.get-paths.outputs.xp }}${{ needs.get-paths.outputs.vc141 }}
           key: XP-VC141
           fail-on-cache-miss: true
       - name: Apply XP reg
