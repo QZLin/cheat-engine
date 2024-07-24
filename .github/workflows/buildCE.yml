@@ -435,7 +435,9 @@ jobs:
         if: ${{ success() || failure() }}
         uses: actions/cache/restore@v4
         with:
-          path: ${{ needs.get-paths.outputs.xp }}
+          path: |
+            ${{ needs.get-paths.outputs.xp }}
+            ${{ needs.get-paths.outputs.vc141 }}
           key: XP-VC141
           fail-on-cache-miss: true
       - name: Apply XP reg
