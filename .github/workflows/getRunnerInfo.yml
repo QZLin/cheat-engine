@@ -77,7 +77,7 @@ jobs:
         uses: DamianReeves/write-file-action@v1.3
         with:
           path: win10sdk.txt
-          contents: ${{ steps.xp-existing-files.outputs.result }}
+          contents: ${{ steps.win10sdk-existing-files.outputs.result }}
       - name: Install HoboCopy
         run: choco install hobocopy
       - name: Copy Registry
