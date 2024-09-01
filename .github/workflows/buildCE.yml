@@ -294,15 +294,20 @@ jobs:
       - name: Use GNU tar
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-      - name: Cache Android NDK
-        id: cache-android-ndk
-        uses: actions/cache/restore@v4
+      - name: Check Android NDK Cache
+        uses: actions/github-script@v7
+        id: check-cache
         with:
-          lookup-only: true
-          path: /opt/hostedtoolcache/ndk/${{ env.V_NDK }}
-          key: setup-ndk-${{ env.V_NDK }}-windows
+          script: |
+            return (
+              await github.rest.actions.getActionsCacheList({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                key: "setup-ndk-${{ env.V_NDK }}-windows"
+              })
+            ).length > 0;
       - name: Setup NDK
-        if: steps.cache-android-ndk.outputs.cache-hit != 'true'
+        if: steps.check-cache.outputs.result != 'true'
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.V_NDK }}
