@@ -305,6 +305,8 @@ jobs:
         with:
           ndk-version: ${{ env.V_NDK }}
           local-cache: true
+          add-to-path: false
+          link-to-sdk: false
   build:
     needs:
       [
@@ -553,6 +555,8 @@ jobs:
         with:
           ndk-version: ${{ env.V_NDK }}
           local-cache: true
+          add-to-path: false
+          link-to-sdk: false
       - name: Build ceserver android
         if: ${{ success() || failure() }}
         run: '& "${{ steps.restore-ndk.outputs.ndk-path }}\ndk-build"'
