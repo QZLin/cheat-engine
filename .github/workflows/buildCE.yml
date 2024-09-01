@@ -24,6 +24,8 @@ env:
   V_NDK: r23
   V_WIN10SDK: 17763
 
+permissions: write-all
+
 jobs:
   cache-lazarus:
     runs-on: windows-2022
